@@ -25,7 +25,6 @@ results = np.array(results)
 y = sin(k*x)-sinh(k*x)-((sin(k*L) + sinh(k*L))/(cos(k*L) + cosh(k*L)))*(cos(k*x)-cosh(k*x))
 
 # Grafico los modos encontrados más arriba:
-
 with plt.style.context('seaborn-whitegrid'):
     
     fig, ax = plt.subplots(figsize = (12, 6))
@@ -34,8 +33,9 @@ with plt.style.context('seaborn-whitegrid'):
     K = results[0]
     x_vals = np.linspace(0, L, 1000)
 
-    # lamdify is a function that converts sympy expressions to numeric modules. In this case numpy.
-    lam_x = lambdify([x, k], y, modules = ['numpy']) # The first agument must be an iterable
+    # lamdify convierte valores de sympy a paquetes numéricos como numpy.
+    # El primer argumento debe ser un iterable
+    lam_x = lambdify([x, k], y, modules = ['numpy'])
     l, = plt.plot(x_vals, lam_x(x_vals, K), linewidth = 2)
 
     ax.margins(x = 0)
