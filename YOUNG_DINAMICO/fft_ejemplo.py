@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks     
@@ -79,26 +78,20 @@ def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True
             ax.set_yscale('log')
         if picos == True:
             ax.set_xlim(0, xf[picos_x[-1]] + 1)
-            # for x_p, y_p in zip([xf[int(x)] for x in picos_x],  [yf[xf[int(x)]] for x in picos_x]):
-            #     ax.plot(x_p, y_p,
-            #      label = 'Pico de amplitud: ({},{})'.format(np.round(x_p, 2), np.round(y_p, 2)))
+            for x_p, y_p in zip([xf[x] for x in picos_x], [yf[x] for x in picos_x]):
+                 ax.plot(x_p, y_p, marker = "o", markersize = 5,
+                 label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 4)))
         else: 
             ax.set_xlim(0, f_samp/2)
         ax.set_xlabel('Frecuencia [Hz]')
-        # ax.set_title(r'FFT de {}'.format(formula))
-        # ax.text(1, 1, 'picos en: {} Hz'.format(np.round(xf[picos_x], 2)), fontsize = 15)
         ax.legend(fontsize = 15)
         plt.tight_layout()
         plt.show()
-    # if picos == True:
-    #     # return [xf[int(x)] for x in picos_x], [yf[xf[int(x)]] for x in picos_x]
-
+    if picos == True:
+        return  [xf[x] for x in picos_x], [yf[x] for x in picos_x]
+        
+        
 picos, alturas = tirafft(V, fsamp, str(r'$sin(2\, \pi\, {} \, t) +sin(2\, \pi\, {} \, t)$'.format(f0,f1)))
 V2 = 2*np.sin(2*np.pi*f0*t) + .001*np.sin(2*np.pi*f1*t) 
 picos, altura = tirafft(V2, fsamp, log = True, prominence =.0001)
-picos
-señal = 2*np.sin(2*np.pi*f0*t) + .001*np.sin(2*np.pi*f1*t)
-señal_fft, N = np.fft.fft(señal), len(señal)
-xf = np.linspace(0, fsamp/2, int(N/2))
-yf = 2*np.abs(señal_fft[:N//2])/N
-picos_x, intensidad_picos = find_peaks(yf, prominence = .0001)
+# len(str(prominence).split('.')[1]))))
