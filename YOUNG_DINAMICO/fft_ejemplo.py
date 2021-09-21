@@ -14,7 +14,7 @@ t = np.arange(0, tmax, tstep)
 # Una función de prueba.
 f0, f1 = 7, 20
 
-V = np.sin(2*np.pi*f0*t) + np.sin(2*np.pi*f1*t) 
+V = 2*np.sin(2*np.pi*f0*t) + np.sin(2*np.pi*f1*t) 
 
 # Graficamos la función de prueba
 with plt.style.context('seaborn-whitegrid'):
@@ -50,39 +50,15 @@ def tirafft(señal, f_samp, formula):
     picos_x, intensidad_picos = find_peaks(yf, height = 1)
     with plt.style.context('seaborn-whitegrid'):
         fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (10, 5))
-        ax.plot(xf, yf)
+        ax.plot(xf, yf, label = r'Transformada de Fourier de {}'.format(formula))
         ax.set_xlim(0, xf[picos_x[-1]] + 1)
         ax.set_ylabel('Potencia')
         ax.set_xlabel('Frecuencia [Hz]')
-        ax.set_title(r'FFT de {}'.format(formula))
+        # ax.set_title(r'FFT de {}'.format(formula))
+        # ax.text(1, 1, 'picos en: {} Hz'.format(np.round(xf[picos_x], 2)), fontsize = 15)
+        ax.legend(fontsize = 15)
         plt.tight_layout()
         plt.show()
-        
     return xf[picos_x], intensidad_picos['peak_heights']
 
-tirafft(V, fsamp, str(r'$sin(2\, \pi\, {} \, t) +sin(2\, \pi\, {} \, t)$'.format(f0,f1)))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+picos, altura =tirafft(V, fsamp, str(r'$sin(2\, \pi\, {} \, t) +sin(2\, \pi\, {} \, t)$'.format(f0,f1)))
