@@ -19,7 +19,7 @@ V = 2*np.sin(2*np.pi*f0*t) + 1*np.sin(2*np.pi*f1*t)
 with plt.style.context('seaborn-whitegrid'):
     fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (10, 5))
     ax.plot(t, V)
-    ax.set_ylabel('Potencia')
+    ax.set_ylabel('Amplitud')
     ax.set_xlabel('Tiempo [s]')
     plt.tight_layout()
     plt.show()
