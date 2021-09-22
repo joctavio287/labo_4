@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 import sys
-file = sys.path.append("C:/repos/labo_4/")
+# Es el path al directorio contenedor de ticks.py
+file = sys.path.append("C:/repos/labo_4/") 
 from ticks import *
 #=======================================================================================
 # Voy a trabajar con sympy para encontrar los modos fundamentales de una vara
@@ -62,7 +63,7 @@ with plt.style.context('seaborn-whitegrid'):
 
     # Lo hago interactivo:
     sk = Slider(axk,
-                 label = 'k: frecuencia espacial',
+                 label = 'Frecuencia espacial:',
                  valmin = results[0], 
                  valmax = results[-1], 
                  valinit = results[0], 

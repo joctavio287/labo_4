@@ -138,7 +138,7 @@ for tension in np.arange(1, 4):
 
 # %% Ploteamos los datos para ver que onda
 import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 # =============================================================================
 # Importamos lo guardado arriba. Cambiar el path acorde a dónde queden
 # guardados los archivos
