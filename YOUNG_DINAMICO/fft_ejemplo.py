@@ -105,7 +105,7 @@ def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True
         return  [xf[x] for x in picos_x], [yf[x] for x in picos_x]
 
 #===============================================================================
-# ALgunos ejemplos de uso de la función.
+# Algunos ejemplos de uso de la función.
 #===============================================================================
 
 # Prueba        
