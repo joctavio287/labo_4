@@ -59,19 +59,59 @@ with plt.style.context('seaborn-whitegrid'):
 #===============================================================================
 
 
-def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True, threshold = 1 , prominence = None):
+def tirafft(señal,
+ f_samp,
+ formula:str = 'la señal',
+ log = False,
+ labels = True,
+ picos = True,
+ threshold = None,
+ prominence = None,
+ height = None,
+ distance = None,
+ width = None,
+ rel_height = None
+ ):
     '''
     INPUT: 
     señal: señal de entrada, preferentemente en formato np.array().
+
     f_samp: es la frecuencia de sampleo de la señal. i.e: 1/pasotemporal.
+
     formula: es una expresión en latex para printear en el gráfico.
+
     log: si la transformada la hace en escala logarítmica. Esto resulta conveniente
     para encontrar picos de frecuencias que tienen amplitud relativa muy baja.
+
+    labels: si adhiere o no texto descriptivo en la imagen.
+
     picos: si buscar los picos de la FFT. Es útil, primero tomarla por False, para 
     poder verla en todo el rango y chequear, después, si al correrla en True no se 
     pierden picos.
-    prominence: es la altura del menor pico, si se pasan dos valores, el segundo se 
-    interpreta como el maximo valor.
+
+    prominence: 'the minimum height necessary to descend to get from the summit to any
+    higher terrain', si se pasan dos valores, el primer se interpreta como el mínimo valor;
+    el segundo como el máximo.
+
+    threshold: 'required vertical distance to its direct neighbouring samples. The first 
+    element is always interpreted as the minimal and the second, if supplied, as the maximal
+    required threshold.'
+
+    height: 'required height of peaks. The first element is always interpreted as the minimal
+    and the second, if supplied, as the maximal required height.'
+
+    distance: 'required minimal horizontal distance (>= 1) in samples between neighbouring 
+    peaks. Smaller peaks are removed first until the condition is fulfilled for all remaining
+    peaks.
+
+    width: 'required width of peaks in samples. The first element is always interpreted as the
+    minimal and the second, if supplied, as the maximal required width.
+
+    rel_height: 'pass only if width is given. Chooses the relative height at which the peak 
+    width is measured as a percentage of its prominence. 1.0 calculates the width of the peak
+    at its lowest contour line while 0.5 evaluates at half the prominence height. Must be at 
+    least 0.'
+
     OUTPUT:
     Si 'picos' =  True entonces devuelve una tupla compuesta de dos listas. La primera
     es la frecuencia donde estan los picos, la segunda son sus amplitudes.
@@ -92,7 +132,13 @@ def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True
         if picos == True:
             try:
                 # picos_x, var_inservible = find_peaks(yf, prominence = prominence)
-                picos_x, var_inservible = find_peaks(yf, threshold = threshold)
+                picos_x, var_inservible = find_peaks(yf,
+                threshold = threshold,
+                prominence = prominence,
+                height = height,
+                distance = distance,
+                width = width,
+                rel_height = rel_height)
                 ax.set_xlim(0, xf[picos_x[-1]] + 1)
                 for x_p, y_p in zip([xf[x] for x in picos_x], [yf[x] for x in picos_x]):
                     ax.plot(x_p, y_p, marker = "o", markersize = 5,
@@ -102,7 +148,8 @@ def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True
         else: 
             ax.set_xlim(0, f_samp/2)
         ax.set_xlabel('Frecuencia [Hz]')
-        ax.legend(fontsize = 12, loc = (.5, .7))
+        if labels == True:
+            ax.legend(fontsize = 12, loc = (.5, .7))
         fig.tight_layout()
         fig.show()
     if picos == True:
@@ -113,18 +160,26 @@ def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True
 #===============================================================================
 
 # Prueba        
-picos, altura = tirafft(V, fsamp, str(r'$sin(2\, \pi\, {} \, t) + sin(2\, \pi\, {} \, t)$'.format(f0, f1)))
+picos, altura = tirafft(V, fsamp, str(r'$sin(2\, \pi\, {} \, t) + sin(2\, \pi\, {} \, t)$'.format(f0, f1)), prominence = 1)
 
 # Señal que potencialmente esconde picos
-V2_ = 2*np.sin(2*np.pi*f1*t)*np.exp(-t*1/20)
+V2_ = 2*np.sin(2*np.pi*f1*t)*np.exp(-t*1/20) + .01*np.sin(2*np.pi*f0*t)
 V2 = sp.norm.rvs(V2_, scale = .01, random_state = 15) 
-# Si corremos así nomas, nos comemos un pico:
-tirafft(V2, fsamp, picos = True)
+
+# Si corremos así nomas, nos comemos un pico. Cuidado que si no se tira ningun parametro va 
+# a encontrar TODOS los picos:
+tirafft(V2, fsamp, picos = True, labels = False)
 
 # Con escala logarítmica, para encontrar picos muy disminuidos:
-tirafft(V2, fsamp, picos = False, log = True)
+tirafft(V2, fsamp, picos = True, log = True, prominence = 1)
 
 # Ahora que se ven los picos se puede intuir que el más chico tiene una
 # amplitud aproximada de 10^-3:
 
-picos2, altura2 = tirafft(V2, fsamp, log = True, picos = True, threshold = 1) 
+picos2, altura2 = tirafft(V2, fsamp, log = True, picos = True, labels = True,
+ threshold = None,
+ prominence = (1e-3, 2),
+ height = None,
+ distance = None,
+ width = None,
+ rel_height = None) 
