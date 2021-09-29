@@ -19,7 +19,7 @@ V = 2*np.sin(2*np.pi*f0*t) + 1*np.sin(2*np.pi*f1*t)
 
 # Graficamos la función de prueba
 with plt.style.context('seaborn-whitegrid'):
-    fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (10, 5))
+    fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (10, 5), num = 0)
     ax.plot(t, V)
     ax.set_ylabel('Amplitud')
     ax.set_xlabel('Tiempo [s]')
@@ -37,10 +37,12 @@ fft = np.fft.fft(V)
 frecs = np.linspace(0, fsamp/2, int(N/2)) 
 
 # frecs2 = np.linspace(0, fsamp, N)
-
+plt.figure
 # Graficamos la tansformada de fourier
 with plt.style.context('seaborn-whitegrid'):
-    fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (10, 5))
+    fig, ax = plt.subplots(nrows = 1, ncols = 1,
+     figsize = (10, 5),
+     num = 1)
     # PREGUNTAR POR QUE HAY QUE NORMALIZAR CON UN MEDIO. Es algo del teo del muestreo,
     # como que para definir una seña periódica necesitas como minimos dos puntos
     ax.plot(frecs, 2*np.abs(fft[:N//2])/N) 
