@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks     
-
+import scipy.stats as sp
 #===============================================================================
 # Entendiendo la fft. Generamos una función de prueba. 
 # El tiempo está en segundos y la frecuencia en Hertz.
@@ -34,8 +34,8 @@ fft = np.fft.fft(V)
 # el algoritmo espeja los valores (para entender descomentar frecs2 
 # y las lineas dentro del plot).
 #===============================================================================
-
 frecs = np.linspace(0, fsamp/2, int(N/2)) 
+
 # frecs2 = np.linspace(0, fsamp, N)
 
 # Graficamos la tansformada de fourier
@@ -59,7 +59,7 @@ with plt.style.context('seaborn-whitegrid'):
 #===============================================================================
 
 
-def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True, prominence = 1):
+def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True, threshold = 1 , prominence = None):
     '''
     INPUT: 
     señal: señal de entrada, preferentemente en formato np.array().
@@ -90,11 +90,15 @@ def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True
             ax.set_ylabel('Amplitud espectral (escala logaritmica)')
             ax.set_yscale('log')
         if picos == True:
-            picos_x, var_inservible = find_peaks(yf, prominence = prominence)
-            ax.set_xlim(0, xf[picos_x[-1]] + 1)
-            for x_p, y_p in zip([xf[x] for x in picos_x], [yf[x] for x in picos_x]):
-                 ax.plot(x_p, y_p, marker = "o", markersize = 5,
-                 label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 6)))
+            try:
+                # picos_x, var_inservible = find_peaks(yf, prominence = prominence)
+                picos_x, var_inservible = find_peaks(yf, threshold = threshold)
+                ax.set_xlim(0, xf[picos_x[-1]] + 1)
+                for x_p, y_p in zip([xf[x] for x in picos_x], [yf[x] for x in picos_x]):
+                    ax.plot(x_p, y_p, marker = "o", markersize = 5,
+                    label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 6)))
+            except:
+                ax.set_xlim(0, f_samp/2)
         else: 
             ax.set_xlim(0, f_samp/2)
         ax.set_xlabel('Frecuencia [Hz]')
@@ -109,13 +113,13 @@ def tirafft(señal, f_samp, formula:str = 'la señal', log = False, picos = True
 #===============================================================================
 
 # Prueba        
-picos, altura = tirafft(V, fsamp, str(r'$sin(2\, \pi\, {} \, t) +sin(2\, \pi\, {} \, t)$'.format(f0, f1)))
+picos, altura = tirafft(V, fsamp, str(r'$sin(2\, \pi\, {} \, t) + sin(2\, \pi\, {} \, t)$'.format(f0, f1)))
 
 # Señal que potencialmente esconde picos
-V2 = 2*np.sin(2*np.pi*f0*t) + .001*np.sin(2*np.pi*f1*t) 
-
+V2_ = 2*np.sin(2*np.pi*f1*t)*np.exp(-t*1/20)
+V2 = sp.norm.rvs(V2_, scale = .01, random_state = 15) 
 # Si corremos así nomas, nos comemos un pico:
-tirafft(V2, fsamp, picos = False)
+tirafft(V2, fsamp, picos = True)
 
 # Con escala logarítmica, para encontrar picos muy disminuidos:
 tirafft(V2, fsamp, picos = False, log = True)
@@ -123,4 +127,4 @@ tirafft(V2, fsamp, picos = False, log = True)
 # Ahora que se ven los picos se puede intuir que el más chico tiene una
 # amplitud aproximada de 10^-3:
 
-picos2, altura2 = tirafft(V2, fsamp, log = True, picos = True, prominence = 1e-3) 
+picos2, altura2 = tirafft(V2, fsamp, log = True, picos = True, threshold = 1) 
