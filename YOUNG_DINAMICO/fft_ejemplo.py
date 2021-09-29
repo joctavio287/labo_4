@@ -1,7 +1,5 @@
-import numpy as np
-import matplotlib.pyplot as plt
+import scipy.stats as sp, numpy as np, matplotlib.pyplot as plt
 from scipy.signal import find_peaks     
-import scipy.stats as sp
 #===============================================================================
 # Entendiendo la fft. Generamos una función de prueba. 
 # El tiempo está en segundos y la frecuencia en Hertz.

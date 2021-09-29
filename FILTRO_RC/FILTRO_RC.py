@@ -5,9 +5,7 @@ Created on Thu Aug 26 15:05:28 2021
 @author: jocta & sofi
 """
 print(__doc__)
-import time
-import pyvisa as visa
-import numpy as np
+import time, pyvisa as visa, numpy as np
 from matplotlib import pyplot as plt
 
 # =============================================================================
