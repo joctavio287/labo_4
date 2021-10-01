@@ -182,4 +182,20 @@ picos2, altura2 = tirafft(V2, fsamp, log = True, picos = True, labels = True,
  height = None,
  distance = None,
  width = None,
- rel_height = None) 
+ rel_height = None)
+ 
+
+df = pd.read_csv('C:/repos/labo_4/YOUNG_DINAMICO/datita{}.csv'.format(str(5)))
+aux = 550
+tiempo = np.linspace(0,.5,len(df.datos))[aux:2000]
+tstep = (tiempo.max()-tiempo.min())/len(tiempo)
+fsamp = 1/tstep
+plt.plot(np.linspace(0,.5,len(df.datos))[aux:2000], df.datos[aux:2000])
+plt.show()
+tirafft(df.datos[aux:2000].tolist(), fsamp, log = True, picos = True,
+threshold = None,
+ prominence = (.9e-2, 50),
+ height = None,
+ distance = None,
+ width = None,
+ rel_height = None)
