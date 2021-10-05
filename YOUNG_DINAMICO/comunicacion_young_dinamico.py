@@ -44,6 +44,30 @@ def definir_medir(inst, channel):
     # Devolvemos la funcion auxiliar que "sabe" la escala
     return _medir
 
+
+# =============================================================================
+# OSICLOSCOPIO: definimos la función para medir y la usamos. Está pensado para golpear la barra
+# y frenar la pantalla del osci cuando se vea una buena cantidad de oscilaciones:
+# =============================================================================
+
+medir = definir_medir(osc, 1)
+
+tiempo, data = medir(1)
+plt.figure(0)
+plt.plot(tiempo, data)
+plt.xlabel('Tiempo [s]')
+plt.ylabel('Tensión [V]')
+plt.show()
+
+# Agarramos la medición que tomamos de la pantalla y creamos un DataFrame con dos columnas: tiempo y tensión.
+df = pd.DataFrame({'tiempo': tiempo.tolist() ,'tension': data.tolist()})
+
+# 'path' es el camino donde guardamos las mediciones (copiar del explorador de windows de la carpeta en la cual
+# estes trabajando). El ultimo troncho después de la barra es el nombre con el que guardamos el archivo. Adentro
+# de format hay que PONER MANUALMENTE EL NUMERO DE LA MEDICION PARA NO PISAR VIEJAS (OJALDRE).
+path = 'C:/repos/labo_4/YOUNG_DINAMICO/medicio_osci{}.csv'.format()
+df.to_csv(path)
+
 # =============================================================================
 # Para setear (y preguntar) el modo y rango de un canal analógico:
 # 'nidaqmx.Task()' is a method to create a task.
@@ -66,7 +90,6 @@ with nidaqmx.Task() as task:
 # =============================================================================
 
 def medir_daq(duracion, fs):
-    # medir = definir_medir(osc, 1) # preparo la función de medición del osciloscopio
     cant_puntos = duracion*fs    
     with nidaqmx.Task() as task:
         modo = nidaqmx.constants.TerminalConfiguration.DIFFERENTIAL
@@ -77,30 +100,37 @@ def medir_daq(duracion, fs):
     datos = np.asarray(datos)    
     return datos
 
+
 # =============================================================================
-# Ejemplo:
+# DAQ en modo finito (en el cual ajustamos nosotres las frecuencia de sampleo y el tiempo
+# de medición). Creo que va a ser más conveniente que el otro. El chiste es que le ponemos
+# un tiempo largo (10s por ej), le pegas a la barra y dejas que oscile. Cuando termine vas
+# a tener una señal larga que va a tener el tiempo previo a la pegada que la descartaremos
+# cuando analicemos los datos:
 # =============================================================================
+duracion = 10 # duración de la medición en segundos. Si se cambia a lo largo de las mediciones es un
+# numero que hay que guardar para cuando procesemos los datos.
 
-medir = definir_medir(osc, 1)
-freq_medicion = 1000 # Hz
-N = 1000 # número de secuencias de la pantalla
-duracion = 1 # duración de la medición en segundos
-fs = 250000 # frecuencia de muestreo (Hz) del daq
-datas  = []
-for n in range(N):
-    tiempo, data = medir()
-    datas.append(tiempo,data)
-    # plt.figure()
-    # plt.plot(tiempo, data);
-    # plt.xlabel('Tiempo [s]');
-    # plt.ylabel('Tensión [V]');
-    time.sleep(1/freq_medicion)
-
-
+fs = 250000 # frecuencia de muestreo (Hz) del daq (tal vez conviene bajarla, dado que 
+# la frecuencia mínima de sampleo es mucho menor y no necesitamos una transformada tan fina)
 datita = medir_daq(duracion, fs)
 
+plt.figure(1)
+plt.plot(duracion, datita)
+plt.xlabel('Tiempo [s]')
+plt.ylabel('Tensión [V]')
+plt.show()
+
+# Para guardar la datita no sabría como hacer porque no sé en qué formato viene. Probar type(datita),
+# si es una lista, array o algo por el estilo se puede copiar el guardado de arriba. Tal vez, si son 
+# demasiados datos, conviene guardar de otra forma que no sea .csv. También esta la opción de bajar la
+# frecuencia de muestreo (no descartar, puede ser muy util, sobre todo para tomar mediciones 
+# preliminares)
+
 # =============================================================================
-# Medición continua:
+# Otra opción: medición continua. La idea es la misma, la diferencia es que cuando vos frenas
+# la task, va a dejar de medir. Es medio desprolijo, creo que conviene usar lo de arriba. Ade
+# más no tenemos con precisión cuál es la escala horizontal
 # =============================================================================
 task = nidaqmx.Task()
 modo = nidaqmx.constants.TerminalConfiguration.DIFFERENTIAL
@@ -118,11 +148,8 @@ for i in range(10):
 task.stop()
 task.close()
 
-# =============================================================================
-# Guardo los datos:
-# =============================================================================
-
-df = pd.DataFrame({'daq': y_D, osc: y_O})
-source = ''
-filename = source + 'mediciones' + '-'.join([str(time.localtime()[i]) for i in np.arange(6)])+ '.csv'
-df.to_csv(filename)
+plt.figure(2)
+plt.plot(datita)
+plt.xlabel('Tiempo [s]')
+plt.ylabel('Tensión [V]')
+plt.show()

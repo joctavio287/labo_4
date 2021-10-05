@@ -1,4 +1,4 @@
-import scipy.stats as sp, numpy as np, matplotlib.pyplot as plt
+import scipy.stats as sp, numpy as np, matplotlib.pyplot as plt, pandas as pd
 from scipy.signal import find_peaks     
 #===============================================================================
 # Entendiendo la fft. Generamos una función de prueba. 
@@ -184,18 +184,23 @@ picos2, altura2 = tirafft(V2, fsamp, log = True, picos = True, labels = True,
  width = None,
  rel_height = None)
  
-
-df = pd.read_csv('C:/repos/labo_4/YOUNG_DINAMICO/datita{}.csv'.format(str(5)))
+# 'datita4.csv' es el bueno
+df = pd.read_csv('C:/repos/labo_4/YOUNG_DINAMICO/datita{}.csv'.format(str(4)))
 aux = 550
-tiempo = np.linspace(0,.5,len(df.datos))[aux:2000]
+tiempo = np.linspace(0, .5, len(df.datos))[aux:2000]
 tstep = (tiempo.max()-tiempo.min())/len(tiempo)
 fsamp = 1/tstep
+plt.figure(0)
 plt.plot(np.linspace(0,.5,len(df.datos))[aux:2000], df.datos[aux:2000])
 plt.show()
-tirafft(df.datos[aux:2000].tolist(), fsamp, log = True, picos = True,
+
+picos, altura = tirafft(df.datos[aux:2000].tolist(), fsamp, log = True, picos = True,
 threshold = None,
  prominence = (.9e-2, 50),
  height = None,
  distance = None,
  width = None,
  rel_height = None)
+
+for i in range(10):
+    picos[0]*i
