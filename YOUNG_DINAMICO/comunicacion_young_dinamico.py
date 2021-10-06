@@ -3,8 +3,7 @@
 # NI-DAQmx Python Documentation: https://nidaqmx-python.readthedocs.io/en/latest/index.html
 # NI USB-621x User Manual: https://www.ni.com/pdf/manuals/371931f.pdf
 # =============================================================================
-
-import visa, time, math, nidaqmx, pandas as pd, numpy as np, matplotlib.pyplot as plt
+import visa, time, nidaqmx, pandas as pd, numpy as np, matplotlib.pyplot as plt
 
 # =============================================================================
 # Chequeo los instrumentos que están conectados por USB
@@ -153,3 +152,23 @@ plt.plot(datita)
 plt.xlabel('Tiempo [s]')
 plt.ylabel('Tensión [V]')
 plt.show()
+
+# =============================================================================
+# Para ver la transformada de la señal en el momento. Los imports son para no tener
+# que copiar la función, directamente la buscamos en el archivo original. En el labo 
+# tal vez es más conveniente copiarla directamente para poder utilizarla.
+# =============================================================================
+# import sys
+# file = sys.path.append("C:/repos/labo_4/YOUNG_DINAMICO/fft_ejemplo.py")
+# from fft_ejemplo import tirafft
+
+datitos = datita.copy() # a esta variable asignarle un copy de la variable que queremos transformar
+aux = 550 # este parámetro se ajusta es para que los datos arranquen cuando arranca la vibración
+tiempo = np.linspace(0, .5, len(datitos))[aux:2000] # si es el osciloscopio podemos usar la variable tiempo que escupe la medicion
+tstep = (tiempo.max()-tiempo.min())/len(tiempo)
+fsamp = 1/tstep
+plt.figure(0)
+plt.plot(np.linspace(0,.5,len(datitos))[aux:2000], datitos[aux:2000])
+plt.show()
+
+picos, altura = tirafft(datitos[aux:2000].tolist(), fsamp, log = True, picos = False)
