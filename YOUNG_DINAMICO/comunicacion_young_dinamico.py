@@ -115,7 +115,7 @@ fs = 250000 # frecuencia de muestreo (Hz) del daq (tal vez conviene bajarla, dad
 datita = medir_daq(duracion, fs)
 
 plt.figure(1)
-plt.plot(duracion, datita)
+plt.plot(np.linspace(0,duracion,len(datita)), datita)
 plt.xlabel('Tiempo [s]')
 plt.ylabel('Tensión [V]')
 plt.show()
