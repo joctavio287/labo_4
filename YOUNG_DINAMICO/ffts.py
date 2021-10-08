@@ -1,15 +1,17 @@
 import scipy.stats as sp, numpy as np, matplotlib.pyplot as plt, pandas as pd
 from scipy.signal import find_peaks  
 #===============================================================================
-# 'tirafft' es una función para calcular la fft y graficarla, además encuentra los 
-# picos de la señal (frecuencia y amplitud).
-# Para usar utilizar el siguiente comando:
+# Para usar utilizar las funciones en otro código usar el siguiente comando:
 # import sys
 # path = "C:/repos/labo_4/YOUNG_DINAMICO/fft_ejemplo.py"
 # file = sys.path.append(path) 
 # from ffts import *
 #===============================================================================
 
+#===============================================================================
+# 'tirafft' es una función para calcular la fft y graficarla, además encuentra los 
+# picos de la señal (frecuencia y amplitud).
+#===============================================================================
 
 def tirafft(señal,
  f_samp,
@@ -106,3 +108,80 @@ def tirafft(señal,
         fig.show()
     if picos == True:
         return  [xf[x] for x in picos_x], [yf[x] for x in picos_x]
+#===============================================================================
+# 'peaks' es una función para encontrar los picos de una señal y graficarla.
+#===============================================================================
+
+def peaks(tiempo,
+ señal,
+ labels = True,
+ picos = True,
+ threshold = None,
+ prominence = None,
+ height = None,
+ distance = None,
+ width = None,
+ rel_height = None
+ ):
+    '''
+    INPUT: 
+    señal: señal de entrada, preferentemente en formato np.array(), puede ser una lista.
+
+    labels: si adhiere o no texto descriptivo en la imagen.
+
+    picos: si buscar los picos de la señal. Es útil, primero tomarla por False, para 
+    poder verla en todo el rango y chequear, después, si al correrla en True no se 
+    pierden picos.
+
+    prominence: 'the minimum height necessary to descend to get from the summit to any
+    higher terrain', si se pasan dos valores, el primer se interpreta como el mínimo valor;
+    el segundo como el máximo.
+
+    threshold: 'required vertical distance to its direct neighbouring samples. The first 
+    element is always interpreted as the minimal and the second, if supplied, as the maximal
+    required threshold.'
+
+    height: 'required height of peaks. The first element is always interpreted as the minimal
+    and the second, if supplied, as the maximal required height.'
+
+    distance: 'required minimal horizontal distance (>= 1) in samples between neighbouring 
+    peaks. Smaller peaks are removed first until the condition is fulfilled for all remaining
+    peaks.
+
+    width: 'required width of peaks in samples. The first element is always interpreted as the
+    minimal and the second, if supplied, as the maximal required width.
+
+    rel_height: 'pass only if width is given. Chooses the relative height at which the peak 
+    width is measured as a percentage of its prominence. 1.0 calculates the width of the peak
+    at its lowest contour line while 0.5 evaluates at half the prominence height. Must be at 
+    least 0.'
+
+    OUTPUT:
+    Si 'picos' =  True entonces devuelve una tupla compuesta de dos listas. La primera
+    es el tiempo donde estan los picos, la segunda son sus amplitudes.
+    '''
+    with plt.style.context('seaborn-whitegrid'):
+        fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (10, 5))
+        ax.plot(tiempo, señal, label = 'Señal de entrada')
+        ax.set_ylabel('Amplitud')
+        if picos == True:
+            try:
+                picos_x, var_inservible = find_peaks(señal,
+                threshold = threshold,
+                prominence = prominence,
+                height = height,
+                distance = distance,
+                width = width,
+                rel_height = rel_height)
+                for x_p, y_p in zip([tiempo[x] for x in picos_x], [señal[x] for x in picos_x]):
+                    ax.plot(x_p, y_p, marker = "o", markersize = 5,
+                    label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 6)))
+            except:
+                pass
+        ax.set_xlabel('Tiempo [s]')
+        if labels == True:
+            ax.legend(fontsize = 12, loc = 'best')
+        fig.tight_layout()
+        fig.show()
+    if picos == True:
+        return  [tiempo[x] for x in picos_x], [señal[x] for x in picos_x]
