@@ -1,11 +1,13 @@
-import scipy.stats as sp, numpy as np, matplotlib.pyplot as plt, pandas as pd, sys
-# Es el path al directorio contenedor de fft_ejemplo.py
-file = sys.path.append("C:/repos/labo_4/YOUNG_DINAMICO/ffts.py") 
+import scipy.stats as sp, numpy as np, matplotlib.pyplot as plt, pandas as pd, os
+# Es el path al directorio contenedor de ffts.py
+path = "C:/repos/labo_4/YOUNG_DINAMICO/ffts.py"
+os.chdir(path)
 from ffts import *
-plt.rcParams['figure.figsize'] = [10, 7]
+os.chdir("C:/repos/labo_4/YOUNG_DINAMICO")
+plt.rcParams['figure.figsize'] = [5, 5]
 
 # Ploteo de las señales osci adquiridas por octi:
-fig, ax = plt.subplots(nrows = 2, ncols = 3, figsize = (10,10))
+fig, ax = plt.subplots(nrows = 2, ncols = 3, figsize = (5, 5))
 ax = ax.flatten()
 for i in range(6):
     df = pd.read_csv('C:/repos/labo_4/YOUNG_DINAMICO/Mediciones/datita{}_osci.csv'.format(str(i)))
@@ -23,7 +25,7 @@ for i in range(6):
 fig.show()
 
 # La que esta más buena (elegir el j):
-j = 5
+j = 4
 df = pd.read_csv('C:/repos/labo_4/YOUNG_DINAMICO/Mediciones/datita{}_osci.csv'.format(str(j)))
 escala_temporal = 5e-1 # 500 ms cada cuadradito [s]
 tiempo_total = escala_temporal*10
@@ -59,7 +61,7 @@ for i in range(12):
 picos_t, amplitud_t = peaks(tiempo = tiempo, señal = datos.tolist(), picos = True, labels = False)
 plt.figure('picos_señal '+ str(j))
 plt.scatter(picos_t, amplitud_t, s = 5)
-plt.yscale('log')
+# plt.yscale('log')
 plt.show()
 
 # Ahora voy a hacer un logplot de los datos y ajustar una lineal. La pendiente será 
@@ -103,3 +105,25 @@ with plt.style.context('seaborn-whitegrid'):
     ax.set_xlim(0,picos_t[-1] + 1)
     # ax.set_ylim(0,5)
     fig.show()
+    
+df = pd.read_csv(r'C:\repos\labo_4\YOUNG_DINAMICO\Mediciones\medicio_osci4.csv')
+aux = 100
+tiempo, tension = df.tiempo[aux:], df.tension[aux:]
+
+tstep = (tiempo.max() - tiempo.min())/len(tiempo)
+fsamp = 1/tstep # frecuencia de sampleo [HZ]
+plt.figure('señal '+ 'ruido')
+plt.plot(tiempo, tension)
+plt.show()
+
+picos_ruido, altura_ruido = tirafft(tension, fsamp, log = True, picos = True,
+threshold = None,
+ prominence = (.9e-2, 50),
+ height = None,
+ distance = None,
+ width = None,
+ rel_height = None)
+
+# Quedó buenisima, mirar las frecuencias en la transformada y los múltiplos acá
+for i in range(12):
+    picos[0]*i 

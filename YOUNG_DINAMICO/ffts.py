@@ -3,9 +3,15 @@ from scipy.signal import find_peaks
 #===============================================================================
 # Para usar utilizar las funciones en otro código usar el siguiente comando:
 # import sys
-# path = "C:/repos/labo_4/YOUNG_DINAMICO/fft_ejemplo.py"
+# path = "C:/repos/labo_4/YOUNG_DINAMICO/ffts.py"
 # file = sys.path.append(path) 
 # from ffts import *
+# Para usarlo temporalmente:
+# import os
+# path = "C:/repos/labo_4/YOUNG_DINAMICO/ffts.py"
+# os.chdir(path)
+# from ffts import *
+# os.chdir("C:/repos/labo_4/YOUNG_DINAMICO")
 #===============================================================================
 
 #===============================================================================
