@@ -93,7 +93,7 @@ def tirafft(señal,
                 distance = distance,
                 width = width,
                 rel_height = rel_height)
-                ax.set_xlim(0, xf[picos_x[-1]] + 1)
+                ax.set_xlim(0, 3*xf[picos_x[-1]]/2)
                 for x_p, y_p in zip([xf[x] for x in picos_x], [yf[x] for x in picos_x]):
                     ax.plot(x_p, y_p, marker = "o", markersize = 5,
                     label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 6)))
