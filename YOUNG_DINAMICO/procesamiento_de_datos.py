@@ -4,7 +4,6 @@ path = "C:/repos/labo_4/YOUNG_DINAMICO/ffts.py"
 os.chdir(path)
 from ffts import *
 os.chdir("C:/repos/labo_4/YOUNG_DINAMICO")
-plt.rcParams['figure.figsize'] = [5, 5]
 
 # Ploteo de las señales osci adquiridas por octi:
 fig, ax = plt.subplots(nrows = 2, ncols = 3, figsize = (5, 5))
@@ -106,10 +105,10 @@ with plt.style.context('seaborn-whitegrid'):
     # ax.set_ylim(0,5)
     fig.show()
     
-df = pd.read_csv(r'C:\repos\labo_4\YOUNG_DINAMICO\Mediciones\medicio_osci4.csv')
-aux = 100
-tiempo, tension = df.tiempo[aux:], df.tension[aux:]
-
+df = pd.read_csv(r'C:\repos\labo_4\YOUNG_DINAMICO\Mediciones\medicio_daq2.csv')
+aux = 150000
+tiempo, tension = df.tiempo[aux:aux+int(len(df.tiempo)/3)], df.tension[aux:aux+int(len(df.tiempo)/3)]
+# tiempo, tension = df.tiempo, df.tension
 tstep = (tiempo.max() - tiempo.min())/len(tiempo)
 fsamp = 1/tstep # frecuencia de sampleo [HZ]
 plt.figure('señal '+ 'ruido')
@@ -118,7 +117,7 @@ plt.show()
 
 picos_ruido, altura_ruido = tirafft(tension, fsamp, log = True, picos = True,
 threshold = None,
- prominence = (.9e-2, 50),
+ prominence = (.9e-3, 50),
  height = None,
  distance = None,
  width = None,
