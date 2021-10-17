@@ -15,6 +15,8 @@ class regresion_lineal:
         self.parametros = None
         self.cov_parametros = None
         self.r = None
+        self.x = None
+        self.y = None
         pass
 
     def fit(self, x, y, cov_y = None, ordenada = False):
@@ -23,6 +25,7 @@ class regresion_lineal:
         'ordenada' es por si se quiere o no tener como output la ordenada.
         OUTPUT: actualiza los coeficientes del ajuste y su matriz de covarianza.
         '''
+        self.x, self.y = x, y
         if cov_y is None:
             cov_y = np.diag(np.ones(y.shape))
         #Esta hecha con matrices por si después queremos ampliarla
@@ -34,7 +37,10 @@ class regresion_lineal:
         parametros = np.dot(np.dot(np.dot(np.linalg.inv(np.dot(np.dot(A.T,inversa_cov),A)), A.T), inversa_cov),y)
         cov_parametros = np.linalg.inv(np.dot(A.T, np.dot(inversa_cov,A)))
         self.parametros, self.cov_parametros = np.array(parametros)[0], np.array(cov_parametros)
-    # def bondad(self, etc)
+    
+    def bondad(self):
+        self.r = np.corrcoef(self.x, self.y)
+
 
 
 # =============================================================================
@@ -151,7 +157,9 @@ with plt.style.context('seaborn-whitegrid'):
 # fig.tight_layout()
 fig.show()
 
-
+reg.bondad()
+print(f'El coeficiente de correlación lineal de los datos es: {reg.r[1][0]}')
+#-0.981 osea que están anticorrelacionados linealmente bastante bien
 
 ################################### REPITO EL PROCESO CON MEDICIONES DAQ DIA 2 #########################
 
