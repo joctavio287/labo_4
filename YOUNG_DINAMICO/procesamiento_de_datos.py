@@ -411,6 +411,74 @@ with plt.style.context('seaborn-whitegrid'):
     ax.legend(fontsize = 12, loc = 'best')
     # fig.tight_layout()
 fig.show()
+
+
+##################################
+# SECCION:
+j = 1
+df = pd.read_csv('C:/repos/labo_4/YOUNG_DINAMICO/Mediciones/medicio_osci{}.csv'.format(str(j)))
+# Esto es para encontrar cuándo arranca y termina la señal limpia
+comienzo = np.where(df.tension == np.amax(df.tension))[0][0]  
+datos = df.tension[comienzo:]
+tiempo = df.tiempo[comienzo:]
+# # Primer tercio:
+# aux = int(len(df.tension[comienzo:])/3)
+# datos = df.tension[comienzo:comienzo + aux]
+# tiempo = df.tiempo[comienzo:comienzo + aux]
+
+# # Segundo tercio:
+# aux = int(len(df.tension[comienzo:])/3)
+# datos = df.tension[comienzo + aux: comienzo + 2*aux]
+# tiempo = df.tiempo[comienzo + aux: comienzo + 2*aux]
+
+# # Ultimo tercio:
+# aux = int(len(df.tension[comienzo:])/3)
+# datos = df.tension[comienzo + 2*aux:]
+# tiempo = df.tiempo[comienzo + 2*aux:]
+
+tstep = (tiempo.max()-tiempo.min())/len(tiempo)
+fsamp = 1/tstep # frecuencia de sampleo [HZ]
+fig = plt.figure('Señal osciloscopio '+ str(j) + ' día 2 de medición')
+plt.plot(tiempo, datos)
+fig.show()
+
+# Tiro la fft y adquiero los picos:
+picos, altura = tirafft(datos, fsamp, log = True, labels = True, picos = True,
+threshold = None,
+ prominence = (.9e-3, 50),
+ height = None,
+ distance = None,
+ width = None,
+ rel_height = None)
+
+# =============================================================================
+# De esta señal, me quedo con los picos positivos para calcularle el logaritmo 
+# y conseguir el coef. de decaimiento. Para esto voy a usar la función que 
+# 'peaks'. No me estaría saliendo xd.
+# =============================================================================
+tiempo_aux = [t for t in tiempo[300:]]
+datos_aux = [d for d in datos[300:]]
+picos_t, amplitud_t = peaks(tiempo = tiempo_aux, señal = datos_aux, picos = True,
+ threshold = None,
+ prominence = .1,
+ height = None,
+ distance = None,
+ width = None,
+ rel_height = None
+ )
+picos_t, amplitud_t = np.array(picos_t), np.array(amplitud_t)
+
+# =============================================================================
+# Ahora vamos a hacer un ajuste sobre los datos en escala logarítma. Esto surge
+# de asumir que el decaimiento es exponencial.
+# =============================================================================
+# Creo el objeto para hacer ajustes y fiteo:
+reg = regresion_lineal()
+reg.fit(picos_t, np.log(amplitud_t), ordenada = True)
+
+# La matriz cov es la matriz de covarianza de los coeficientes del ajuste:
+ordenada, pendiente, cov = reg.parametros[0], reg.parametros[1], reg.cov_parametros
+
 I = (np.pi*(5/1000)**4)/64
 masa = 88.85/1000
 longitud = .38
@@ -421,5 +489,5 @@ k_1 = 4.934484391
 f_1 = picos[0]
 modulo = ((f_1**2)*4*np.pi**2+pendiente**2)/((I/densidad_lineal)*k_1**4)
 
-
+# k_2 = 
 segundo_modo = (1/(2*np.pi))*np.sqrt((I*modulo*(k_2)**4)/densidad_lineal-pendiente**2)
