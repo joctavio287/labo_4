@@ -16,13 +16,13 @@ from ticks import *
 k, y, x = symbols("k y x", real = True)
 
 # Longitud de la barra:
-L = 5
-
+# L = .38
+L = .316
 # Calculo numericamente los valores que puede tomar k (frecuencia espacial):
 results = [] 
 for x_0 in np.arange(0, 100, 1/L):
     try:
-        result = np.round(float(nsolve(cos(k*L)*cosh(k*L) + 1, k, x_0)), 5)
+        result = np.round(float(nsolve(cos(k*L)*cosh(k*L) + 1, k, x_0)), 9)
         if result not in results:
             results.append(result)
     except:

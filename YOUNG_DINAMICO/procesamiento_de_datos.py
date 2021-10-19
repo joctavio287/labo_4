@@ -1,6 +1,6 @@
 import scipy.stats as sp, numpy as np, matplotlib.pyplot as plt, pandas as pd, os
 # Es el path al directorio contenedor de ffts.py
-path = "C:/repos/labo_4/YOUNG_DINAMICO/ffts.py"
+path = "C:/repos/labo_4/YOUNG_DINAMICO/"
 os.chdir(path)
 from ffts import *
 os.chdir("C:/repos/labo_4/YOUNG_DINAMICO")
@@ -241,7 +241,7 @@ picos_t, amplitud_t = np.array(picos_t), np.df.array(amplitud_t)
 # Señales adquiridas con el osci el primer día de medición. 
 # 500 ms cada cuadradito y 100 mV escala vertical
 # Barra de latón: (5 +- 1) mm de diámetro; (50.0 +- 0.1) cm de largo;
-# COMPLETAR cm desde el agarne hasta la cuchilla;  COMPLETAR de peso. 
+# (38.0 +- .2) cm desde el agarne hasta la cuchilla;  (88.85 +- 0.01)g de peso. 
 # =============================================================================
 fig, ax = plt.subplots(nrows = 2, ncols = 3, figsize = (5, 5))
 ax = ax.flatten()
@@ -282,7 +282,7 @@ tiempo = df.tiempo[comienzo:]
 
 tstep = (tiempo.max()-tiempo.min())/len(tiempo)
 fsamp = 1/tstep # frecuencia de sampleo [HZ]
-fig = plt.figure('Señal osciloscopio '+ str(j) + ' día 1 de medición')
+fig = plt.figure('Señal osciloscopio '+ str(j) + ' día 2 de medición')
 plt.plot(tiempo, datos)
 fig.show()
 
@@ -300,15 +300,59 @@ threshold = None,
 # y conseguir el coef. de decaimiento. Para esto voy a usar la función que 
 # 'peaks'. No me estaría saliendo xd.
 # =============================================================================
-picos_t, amplitud_t = peaks(tiempo = tiempo[200:], señal = datos[200:].tolist(), picos = True,
+tiempo_aux = [t for t in tiempo[300:]]
+datos_aux = [d for d in datos[300:]]
+picos_t, amplitud_t = peaks(tiempo = tiempo_aux, señal = datos_aux, picos = True,
  threshold = None,
- prominence = .5,
- height = (.7,1),
- distance = 1/15,
+ prominence = .1,
+ height = None,
+ distance = None,
  width = None,
  rel_height = None
  )
 picos_t, amplitud_t = np.array(picos_t), np.array(amplitud_t)
+
+# =============================================================================
+# Ahora vamos a hacer un ajuste sobre los datos en escala logarítma. Esto surge
+# de asumir que el decaimiento es exponencial.
+# =============================================================================
+# Creo el objeto para hacer ajustes y fiteo:
+reg = regresion_lineal()
+reg.fit(picos_t, np.log(amplitud_t), ordenada = True)
+
+# La matriz cov es la matriz de covarianza de los coeficientes del ajuste:
+ordenada, pendiente, cov = reg.parametros[0], reg.parametros[1], reg.cov_parametros
+v11, v12, v21, v22 = cov[0][0], cov[1][0], cov[0][1], cov[1][1] 
+
+# Auxiliares par graficar:
+x = np.linspace(0.5, 4.5, 10000)
+ajuste = ordenada + pendiente*x 
+
+# Esto está en el tp 3 de MEFE. Sale de calcular la covarianza para y usando los datos del ajuste:
+franja_error = np.sqrt(v11 + v22*x**2 + 2*v12*x)
+
+with plt.style.context('seaborn-whitegrid'):
+    fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (10, 5))
+    ax.plot(x, ajuste,  color = 'red', label = 'El ajuste')
+    ax.plot(x, ajuste + franja_error,
+               '-.', color = 'green', 
+               label = 'Error del ajuste')
+    ax.plot(x, ajuste - franja_error,
+               '-.', color = 'green')
+    ax.fill_between(x, ajuste - franja_error,
+                       ajuste + franja_error, 
+                       facecolor = "gray", alpha = 0.5)
+    ax.scatter(picos_t, np.log(amplitud_t), marker = '.', color = 'k')
+#   plt.errorbar(picos_t, np.log(amplitud_t), marker = '.', yerr = None, fmt = 'none', capsize = 5, color = 'black')
+    ax.set_xlabel('Tiempo [s]', fontsize = 15)
+    ax.set_ylabel('Tensión (en escala logarítmica) [log(V)]', fontsize = 15)
+    ax.legend(fontsize = 15, loc = (0,0.1))
+# fig.tight_layout()
+fig.show()
+
+reg.bondad()
+print(f'El coeficiente de correlación lineal de los datos es: {reg.r[1][0]}')
+#-0.981 osea que están anticorrelacionados linealmente bastante bien
 
 # =============================================================================
 # Gráficos para el informe de la señal y la transformada. Estoy usando el osci
@@ -367,3 +411,15 @@ with plt.style.context('seaborn-whitegrid'):
     ax.legend(fontsize = 12, loc = 'best')
     # fig.tight_layout()
 fig.show()
+I = (np.pi*(5/1000)**4)/64
+masa = 88.85/1000
+longitud = .38
+# longitud = .316
+densidad_lineal = masa/longitud
+k_1 = 4.934484391
+# k_1 = 5.93387364
+f_1 = picos[0]
+modulo = ((f_1**2)*4*np.pi**2+pendiente**2)/((I/densidad_lineal)*k_1**4)
+
+k_2 = results[1]
+segundo_modo = (1/(2*np.pi))*np.sqrt((I*modulo*(k_2)**4)/densidad_lineal-pendiente**2)
