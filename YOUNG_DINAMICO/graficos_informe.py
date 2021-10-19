@@ -50,32 +50,41 @@ fsamp = 1/tstep # frecuencia de sampleo [HZ]
 
 # SEÑAL:
 with plt.style.context('seaborn-whitegrid'):
-    fig, axs = plt.subplots(nrows = 2, ncols = 2, figsize = (12, 7), sharey = True)
-    fig.supylabel('Tensión [V]', fontsize = 12)
-    fig.supxlabel('Tiempo [s]', fontsize = 12)
+    fig, axs = plt.subplots(nrows = 2, ncols = 2, figsize = (8, 7), sharey = True)
+    fig.supylabel('Tensión [V]', fontsize = 13)
+    fig.supxlabel('Tiempo [s]', fontsize = 13)
     axs = axs.flatten()
     axs[0].plot(tiempo, datos, label = 'Señal entera')
-    # axs[0].set_xlabel('Tiempo [s]', fontsize = 12)
-    # axs[0].set_ylabel('Tensión [V]', fontsize = 12)
-    axs[0].legend(fontsize = 12, loc = 'best')
+    # axs[0].set_xlabel('Tiempo [s]', fontsize = 13)
+    # axs[0].set_ylabel('Tensión [V]', fontsize = 13)
+    axs[0].legend(fontsize = 11, loc = 'best')
     aux_1, aux_2 = 0, int(len(datos)/10)
     axs[1].plot(tiempo[aux_1:aux_2], datos[aux_1:aux_2], label = 'Primer décimo de la señal')
-    # axs[1].set_xlabel('Tiempo [s]', fontsize = 12)
-    # axs[1].set_ylabel('Tensión [V]', fontsize = 12)
-    axs[1].legend(fontsize = 12, loc = 'best')
+    # axs[1].set_xlabel('Tiempo [s]', fontsize = 13)
+    # axs[1].set_ylabel('Tensión [V]', fontsize = 13)
+    axs[1].legend(fontsize = 11, loc = 'best')
     aux_1, aux_2 = int(len(datos)/10), 2*int(len(datos)/10) 
     axs[2].plot(tiempo[aux_1:aux_2], datos[aux_1:aux_2], label = 'Segundo décimo de la señal')
-    # axs[2].set_xlabel('Tiempo [s]', fontsize = 12)
-    # axs[2].set_ylabel('Tensión [V]', fontsize = 12)
-    axs[2].legend(fontsize = 12, loc = 'best')
+    # axs[2].set_xlabel('Tiempo [s]', fontsize = 13)
+    # axs[2].set_ylabel('Tensión [V]', fontsize = 13)
+    axs[2].legend(fontsize = 11, loc = 'best')
     aux_1, aux_2 = 2*int(len(datos)/10), 3*int(len(datos)/10)
     axs[3].plot(tiempo[aux_1:aux_2], datos[aux_1:aux_2], label = 'Tercer décimo de la señal')
-    # axs[3].set_xlabel('Tiempo [s]', fontsize = 12)
-    # axs[3].set_ylabel('Tensión [V]', fontsize = 12)
-    axs[3].legend(fontsize = 12, loc = 'best')
-fig.tight_layout()
-fig.show()
-# fig.savefig('C:/Users/jocta/Documents/LaTex/Modulo_young/señal.jpg', dpi=1200)
+    # axs[3].set_xlabel('Tiempo [s]', fontsize = 13)
+    # axs[3].set_ylabel('Tensión [V]', fontsize = 13)
+    axs[3].legend(fontsize = 11, loc = 'best')
+    
+fig.subplots_adjust( 
+left  = 0.09,  # the left side of the subplots of the figure
+right = 0.99,    # the right side of the subplots of the figure, as a fraction of the figure width
+bottom = 0.075,   # the bottom of the subplots of the figure
+top = 0.999,      # the top of the subplots of the figure
+wspace = 0.05,   # the amount of width reserved for blank space between subplots
+hspace = 0.1)   # the amount of height reserved for white space between subplots
+# fig.show()
+
+
+fig.savefig('C:/Users/jocta/Documents/LaTex/Modulo_young/señal.jpg', dpi=1200)
 
 # LINEAL:
 j = 1
@@ -110,7 +119,7 @@ ajuste = ordenada + pendiente*x
 franja_error = np.sqrt(v11 + v22*x**2 + 2*v12*x)
 
 with plt.style.context('seaborn-whitegrid'):
-    fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (10, 5))
+    fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (8, 7))
     ax.plot(x, ajuste,  color = 'red', label = 'El ajuste')
     ax.plot(x, ajuste + franja_error,
                '-.', color = 'green', 
@@ -122,9 +131,9 @@ with plt.style.context('seaborn-whitegrid'):
                        facecolor = "gray", alpha = 0.5)
     ax.scatter(picos_t, np.log(amplitud_t), marker = '.', color = 'k')
 #   plt.errorbar(picos_t, np.log(amplitud_t), marker = '.', yerr = None, fmt = 'none', capsize = 5, color = 'black')
-    ax.set_xlabel('Tiempo [s]', fontsize = 15)
-    ax.set_ylabel('Tensión (en escala logarítmica) [log(V)]', fontsize = 15)
-    ax.legend(fontsize = 15, loc = (0,0.1))
+    ax.set_xlabel('Tiempo [s]', fontsize = 13)
+    ax.set_ylabel('Tensión (en escala logarítmica) [log(V)]', fontsize = 13)
+    ax.legend(fontsize = 11, loc = (0,0.1))
 fig.tight_layout()
 fig.show()
 
@@ -137,9 +146,9 @@ fig.savefig('C:/Users/jocta/Documents/LaTex/Modulo_young/lineal.jpg', dpi=1200)
 # TRANSFORMADA:
 
 with plt.style.context('seaborn-whitegrid'):
-    fig, axs = plt.subplots(nrows = 2, ncols = 2, figsize = (12, 7), sharey = True)
-    fig.supylabel('Amplitud espectral (escala logarítmica)', fontsize = 12)
-    fig.supxlabel('Frecuencia [Hz]', fontsize = 12)
+    fig, axs = plt.subplots(nrows = 2, ncols = 2, figsize = (8, 7), sharey = True)
+    fig.supylabel('Amplitud espectral (escala logarítmica)', fontsize = 13)
+    fig.supxlabel('Frecuencia [Hz]', fontsize = 13)
     axs = axs.flatten()
     # Transformada entera:
     datos = [d for d in df.tension[comienzo:]]
@@ -150,17 +159,17 @@ with plt.style.context('seaborn-whitegrid'):
     xf = np.linspace(0, fsamp/2, int(N/2))
     yf = (2*np.abs(señal_fft[:N//2])/N)
     
-    axs[0].plot(xf, yf, label = 'Transformada de la señal entera')
-    axs[0].set_xlabel('Frecuencia [Hz]', fontsize = 12)
-    # axs[0].set_ylabel('Amplitud espectral (escala logarítmica)', fontsize = 12)
+    axs[0].plot(xf, yf, label = 'Señal entera')
+    # axs[0].set_xlabel('Frecuencia [Hz]', fontsize = 13)
+    # axs[0].set_ylabel('Amplitud espectral (escala logarítmica)', fontsize = 13)
     axs[0].set_yscale('log')
     # axs[0].set_xlim(0, 2*xf[-1]/4)
     picos_x, var_inservible = find_peaks(yf, prominence = (.5e-2, 1))
     for x_p, y_p in zip([xf[x] for x in picos_x], [yf[x] for x in picos_x]):
         if int(x_p) != 44:
             axs[0].plot(x_p, y_p, marker = "o", markersize = 5,
-            label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 6)))
-    axs[0].legend(fontsize = 12, loc = 'best')
+            label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 4)))
+    axs[0].legend(fontsize = 11, loc = 'best')
 
     # Transformada primer tramo;
     datos = [d for d in df.tension[comienzo:]]
@@ -174,17 +183,17 @@ with plt.style.context('seaborn-whitegrid'):
     xf = np.linspace(0, fsamp/2, int(N/2))
     yf = (2*np.abs(señal_fft[:N//2])/N)
     
-    axs[1].plot(xf, yf, label = 'Transformada del primer décimo señal')
-    # axs[1].set_xlabel('Frecuencia [Hz]', fontsize = 12)
-    # axs[1].set_ylabel('Amplitud espectral (escala logarítmica)', fontsize = 12)
+    axs[1].plot(xf, yf, label = 'Primer décimo señal')
+    # axs[1].set_xlabel('Frecuencia [Hz]', fontsize = 13)
+    # axs[1].set_ylabel('Amplitud espectral (escala logarítmica)', fontsize = 13)
     axs[1].set_yscale('log')
     axs[1].set_xlim(0, 2*xf[-1]/4)
     picos_x, var_inservible = find_peaks(yf, prominence = (.5e-2, 1))
     for x_p, y_p in zip([xf[x] for x in picos_x], [yf[x] for x in picos_x]):
         if int(x_p) != 44:
             axs[1].plot(x_p, y_p, marker = "o", markersize = 5,
-            label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 6)))
-    axs[1].legend(fontsize = 12, loc = 'best')
+            label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 4)))
+    axs[1].legend(fontsize = 11, loc = 'best')
 
     # Transformada segundo tramo:
     datos = [d for d in df.tension[comienzo:]]
@@ -198,17 +207,17 @@ with plt.style.context('seaborn-whitegrid'):
     xf = np.linspace(0, fsamp/2, int(N/2))
     yf = (2*np.abs(señal_fft[:N//2])/N)
     
-    axs[2].plot(xf, yf, label = 'Transformada del segundo décimo la señal')
-    # axs[2].set_xlabel('Frecuencia [Hz]', fontsize = 12)
-    # axs[2].set_ylabel('Amplitud espectral (escala logarítmica)', fontsize = 12)
+    axs[2].plot(xf, yf, label = 'Segundo décimo la señal')
+    # axs[2].set_xlabel('Frecuencia [Hz]', fontsize = 13)
+    # axs[2].set_ylabel('Amplitud espectral (escala logarítmica)', fontsize = 13)
     axs[2].set_yscale('log')
     axs[2].set_xlim(0, 2*xf[-1]/4)
     picos_x, var_inservible = find_peaks(yf, prominence = (.5e-2, 1))
     for x_p, y_p in zip([xf[x] for x in picos_x], [yf[x] for x in picos_x]):
         if int(x_p) != 44:
             axs[2].plot(x_p, y_p, marker = "o", markersize = 5,
-            label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 6)))
-    axs[2].legend(fontsize = 12, loc = 'best')
+            label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 4)))
+    axs[2].legend(fontsize = 11, loc = 'best')
 
     # Transformada tercer tramo:
     datos = [d for d in df.tension[comienzo:]]
@@ -222,19 +231,27 @@ with plt.style.context('seaborn-whitegrid'):
     xf = np.linspace(0, fsamp/2, int(N/2))
     yf = (2*np.abs(señal_fft[:N//2])/N)
     
-    axs[3].plot(xf, yf, label = 'Transformada del tercer décimo de la señal')
-    # axs[3].set_xlabel('Frecuencia [Hz]', fontsize = 12)
-    # axs[3].set_ylabel('Amplitud espectral (escala logarítmica)', fontsize = 12)
+    axs[3].plot(xf, yf, label = 'Tercer décimo de la señal')
+    # axs[3].set_xlabel('Frecuencia [Hz]', fontsize = 13)
+    # axs[3].set_ylabel('Amplitud espectral (escala logarítmica)', fontsize = 13)
     axs[3].set_yscale('log')
     axs[3].set_xlim(0, 2*xf[-1]/4)
     picos_x, var_inservible = find_peaks(yf, prominence = (.5e-2, 1))
     for x_p, y_p in zip([xf[x] for x in picos_x], [yf[x] for x in picos_x]):
         if int(x_p) != 44:
             axs[3].plot(x_p, y_p, marker = "o", markersize = 5,
-            label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 6)))
-    axs[3].legend(fontsize = 12, loc = 'best')
-fig.tight_layout()
-fig.show()
+            label = 'Coordenadas del pico: ({}, {})'.format(np.round(x_p, 2), np.round(y_p, 4)))
+    axs[3].legend(fontsize = 11, loc = 'best')
+# fig.tight_layout()
+fig.subplots_adjust( 
+left  = 0.09,  # the left side of the subplots of the figure
+right = 0.99,    # the right side of the subplots of the figure, as a fraction of the figure width
+bottom = 0.075,   # the bottom of the subplots of the figure
+top = 0.999,      # the top of the subplots of the figure
+wspace = 0.05,   # the amount of width reserved for blank space between subplots
+hspace = 0.1)   # the amount of height reserved for white space between subplots
 
-# fig.savefig('C:/Users/jocta/Documents/LaTex/Modulo_young/transformada.jpg', dpi=1200)
+# fig.show()
+
+fig.savefig('C:/Users/jocta/Documents/LaTex/Modulo_young/transformada.jpg', dpi=1200)
 

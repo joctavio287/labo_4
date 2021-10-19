@@ -421,5 +421,5 @@ k_1 = 4.934484391
 f_1 = picos[0]
 modulo = ((f_1**2)*4*np.pi**2+pendiente**2)/((I/densidad_lineal)*k_1**4)
 
-k_2 = results[1]
+
 segundo_modo = (1/(2*np.pi))*np.sqrt((I*modulo*(k_2)**4)/densidad_lineal-pendiente**2)
