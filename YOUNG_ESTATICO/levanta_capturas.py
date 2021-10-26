@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # Tanto imageio como matplotlib tienen funciones imread. La de imageio carga enteros entre 0 y 255,
 # mientras que matplotlib carga entre 0 y 1. Pueden usar cualquiera de las dos.
 
-imagen = imageio.imread('YOUNG_ESTATICO/captura1.png')
+imagen = imageio.imread('captura1.png')
 imagen.shape
 imagen1 = imagen[:, :, 0]
 imagen1.shape
