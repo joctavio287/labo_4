@@ -16,8 +16,8 @@ from ticks import *
 k, y, x = symbols("k y x", real = True)
 
 # Longitud de la barra:
-# L = .38
-L = .316
+L = .38
+# L = .316
 # Calculo numericamente los valores que puede tomar k (frecuencia espacial):
 results = [] 
 for x_0 in np.arange(0, 100, 1/L):
