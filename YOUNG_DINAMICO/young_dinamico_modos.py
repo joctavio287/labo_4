@@ -23,13 +23,21 @@ results = []
 for x_0 in np.arange(0, 100, 1/L):
     try:
         result = np.round(float(nsolve(cos(k*L)*cosh(k*L) + 1, k, x_0)), 9)
-        if result not in results:
+        if (result not in results) and (-result not in results):
             results.append(result)
     except:
         pass
 
 # Estos son los valores que puede tomar k:
 results = np.array(results)
+re_tex = str(results)
+print('Los modos normales son: ' + re_tex.strip('[').strip(']'))
+
+
+#=======================================================================================
+# Lo que sigue es sólo una visualización de los modos.
+#=======================================================================================
+
 
 # Parte espacial de la solucion:
 y = sin(k*x)-sinh(k*x)-((sin(k*L) + sinh(k*L))/(cos(k*L) + cosh(k*L)))*(cos(k*x)-cosh(k*x))
@@ -49,7 +57,7 @@ with plt.style.context('seaborn-whitegrid'):
     l, = ax.plot(x_vals, lam_x(x_vals, K), linewidth = 2)
 
     ax.margins(x = 0)
-    ax.set_xlim([-1, L])
+    ax.set_xlim([-L/6, L])
     ax.set_ylim([-2.75, 2.75])
     ax.set_xlabel(r'$x$', fontsize = 16)
     ax.set_ylabel(r'${}$'.format('y(x)'), fontsize = 16)
