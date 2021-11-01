@@ -14,49 +14,33 @@ from scipy import signal    # Para aplicar filtros
 import numpy as np          # Para porcesar matrices y vectores
 import matplotlib
 matplotlib.use('Qt5Agg')
-#Ejemplo: Aplicación de filtro para detección de bordes
+
+
+
+
+#%% Ejemplo: Aplicación de filtro para detección de bordes
 
 #cargamos la imagen a analizar y extraemos el canal Verde
 imagen    = imageio.imread('process1.png')
 img_verde = imagen[:,:,1]
+
+
+
 plt.figure(figsize = (7, 6))
 plt.imshow( imagen )
 plt.title('Imagen Original')
-img_rotada = ndimage.rotate( img_bordes , 3)
-s = [[1, 2, 1],  
-     [0, 0, 0], 
-     [-1, -2, -1]]
-H          = signal.convolve2d(img_rotada, s)
-V          = signal.convolve2d(img_rotada, np.transpose(s))
-img_bordes = (H**2 + V**2)**0.5
-plt.figure(figsize = (7,6))
-plt.imshow( img_bordes )
-
-plt.title('Imagen rotada. Se modificó la columan 850')
 
 
-# Ejemplo: Extracción de columnas
-perfil_img_rotada = img_bordes[100:300, 851]
-perfil_img_verde  = img_verde[ 100:300, 851]
+plt.figure(figsize = (7, 6))
+plt.imshow( img_verde , cmap=plt.cm.Greens_r )
+plt.title('Canal verde en color verde')
+
+plt.figure(figsize = (7, 6))
+plt.imshow( img_verde )
+plt.title('Canal verde en mapa de color JET')
 
 
-plt.figure(figsize = (9,6)   )
-
-plt.plot(  perfil_img_rotada , label='Perfil img_rotada' )
-plt.plot(  perfil_img_verde  , label='Perfil img_verde' )
-
-plt.legend()
-plt.show()
-# plt.figure(figsize = (7, 6))
-# plt.imshow( img_verde , cmap=plt.cm.Greens_r )
-# plt.title('Canal verde en color verde')
-
-# plt.figure(figsize = (7, 6))
-# plt.imshow( img_verde )
-# plt.title('Canal verde en mapa de color JET')
-
-
-# Ejemplo: Aplicamos filtro de detección de  bordes
+#%% Ejemplo: Aplicamos filtro de detección de  bordes
 
 
 # kernel del filtro
@@ -71,30 +55,30 @@ V          = signal.convolve2d(img_verde, np.transpose(s))
 img_bordes = (H**2 + V**2)**0.5
 
 
-# #cgrafica dicha convolución
-# plt.figure(figsize = (7,6))
-# plt.imshow( img_bordes )
+#cgrafica dicha convolución
+plt.figure(figsize = (7,6))
+plt.imshow( img_bordes )
 
-# plt.title('Filtro de detección de bordes')
+plt.title('Filtro de detección de bordes')
 
-# Ejemplo: Aplicamos rotación de imagen 
+
+#%% Ejemplo: Aplicamos rotación de imagen 
 
 
 # Se rota 1 grado en la dirección de las agujas del reloj para alinear mejor la imagen
-img_rotada = ndimage.rotate( img_bordes , 3)
+img_rotada = ndimage.rotate( img_bordes , -1)
 
 # Esta linea modifica el valor de una linea en la imagen
-# img_rotada[:,850] = ndimage.maximum(  img_rotada[:]   )
+img_rotada[:,850] = ndimage.maximum(  img_rotada[:]   )
 
 #se grafica la imagen modificada
 plt.figure(figsize = (7,6))
 plt.imshow( img_rotada )
 
 plt.title('Imagen rotada. Se modificó la columan 850')
-plt.show()
 
 
-# Ejemplo: Extracción de columnas
+#%% Ejemplo: Extracción de columnas
 perfil_img_rotada = img_rotada[100:300, 851]
 perfil_img_verde  = img_verde[ 100:300, 851]
 
@@ -105,8 +89,8 @@ plt.plot(  perfil_img_rotada , label='Perfil img_rotada' )
 plt.plot(  perfil_img_verde  , label='Perfil img_verde' )
 
 plt.legend()
-plt.show()
-# Ejemplo: Extraddión de datos de la imagen ("a mano")
+
+#%% Ejemplo: Extraddión de datos de la imagen ("a mano")
 
 # Con ginput(N) podemos elegir N puntos de la figura y nos devuelve las coordenadas (x,y) 
 puntos = plt.ginput(10)
@@ -130,7 +114,7 @@ escala_error = np.std(  diff_x )/np.sqrt(len(diff_x)) # tomo el error de la medi
 print(f'Escala: ( {escala}  ± {escala_error}  ) px/mm')
 
 
-#Ejemplo: Graficar con escala
+#%% Ejemplo: Graficar con escala
 
 # Seleccionamos los índices donde img_rotada tiene un valor mayor a 55
 indices_mayores_a_55 = (img_rotada > 55)
@@ -159,7 +143,7 @@ plt.ylabel('Y [mm]')
 
 
 
-#Ejemplo: Graficar perfiles con la escala adecuada (y de paso, usamos subplot )
+#%% Ejemplo: Graficar perfiles con la escala adecuada (y de paso, usamos subplot )
 
 
 
@@ -193,4 +177,4 @@ plt.plot(eje_y, perfil_793 , label='perfil columna 793' , color='orange')
 plt.xlabel('Eje Y [mm]')
 
 plt.legend()
-plt.show()
+

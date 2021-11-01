@@ -43,7 +43,7 @@ plt.title( 'Versiones con colormap JET' )
 
 
 plt.suptitle('Selección de canal RGB')
-
+plt.show()
 
 #%%
 
