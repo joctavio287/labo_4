@@ -11,7 +11,7 @@ masas = {'base':14.6570,7:20.0345,10:4.7468,4:2.1346,1:2.1157,6:5.0945,11:9.9158
 mediciones = {
 'solo': 0,
 'base': masas['base'],
-'173602775' : masas['base']+masas[4],
+'173602775': masas['base']+masas[4],
 '173702132': masas['base']+masas[4]+masas[8],
 '173743569': masas['base']+masas[4]+masas[8]+masas[1],
 '174106806': masas['base']+masas[4]+masas[8]+masas[1]+masas[14],
@@ -34,12 +34,13 @@ fig.show()
 imagen = imagen[:, :, 2].copy()
 fig = plt.figure()
 plt.imshow(imagen)
-
 fig.show()
-plt.figure()
+
+# Bineo sumando todas las columnas de la imagen:
+fig = plt.figure()
 plt.plot(imagen.sum(axis=1))
-plt.show(block=False)
-#Bineo sumando todas las columnas de la imagen:
+clicks = fig.ginput(n = 10, timeout = 40, show_clicks=True, mouse_add=<MouseButton.LEFT: 1>, mouse_pop=<MouseButton.RIGHT: 3>, mouse_stop=<MouseButton.MIDDLE: 2>)[source]
+fig.show()
 
 
 
