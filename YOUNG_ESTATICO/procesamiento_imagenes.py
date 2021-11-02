@@ -39,8 +39,9 @@ fig.show()
 # Bineo sumando todas las columnas de la imagen:
 fig = plt.figure()
 plt.plot(imagen.sum(axis=1))
-clicks = fig.ginput(n = 10, timeout = 40, show_clicks=True, mouse_add=<MouseButton.LEFT: 1>, mouse_pop=<MouseButton.RIGHT: 3>, mouse_stop=<MouseButton.MIDDLE: 2>)[source]
+clicks = fig.ginput(n = 10, timeout = 40, show_clicks=True)
 fig.show()
+clicks = [x for x,y in clicks]
 
 
 
