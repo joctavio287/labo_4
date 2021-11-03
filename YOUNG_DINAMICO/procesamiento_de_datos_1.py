@@ -265,12 +265,12 @@ print(f'El coeficiente de correlación lineal de los datos es: {reg.r[1][0]}')
 # RESPECTIVOS ERRORES.
 # =============================================================================
 
-I = (np.pi*(5/1000)**4)/64 # momento de inercia seccional
+I = ((np.pi*(5/1000)**4)/64) # momento de inercia seccional
 masa = 88.85/1000
 longitud = .38
 longitud_entera = .5
 # longitud = .316 # osci día1
-densidad_lineal = masa/longitud#/longitud_entera
+densidad_lineal = masa/longitud#longitud_entera
 k_1 = 4.934484391
 # k_1 = 5.93387364 # osci día1
 f_1 = picos[0]
