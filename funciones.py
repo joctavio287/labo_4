@@ -150,7 +150,6 @@ class propagacion_errores:
         for sim, error in zip(simbolos, errores):
             derivada_parcial =  diff(eval(self.parametros['expr'][0]), eval(sim))
             terminos.append(derivada_parcial*error)
-        print(locals()[self.parametros['expr'][0]])
         # Convierto la expresión simbólica en un módulo numérico (numpy) para poder reemplazar:
         lambd_err = lambdify(simbolos, propagacion_errores.norma(terminos), modules = ['numpy'])
         lambd_val = lambdify(simbolos, locals()[self.parametros['expr'][0]], modules = ['numpy'])

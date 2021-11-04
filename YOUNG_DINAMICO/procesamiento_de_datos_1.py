@@ -3,43 +3,9 @@ import scipy.stats as sp, numpy as np, matplotlib.pyplot as plt, pandas as pd, o
 path = "C:/repos/labo_4/YOUNG_DINAMICO/"
 os.chdir(path)
 from ffts import *
-os.chdir("C:/repos/labo_4/YOUNG_DINAMICO")
-
-# =============================================================================
-# Armo una clase para hacer regresiones lineales unidimensionales. Si después
-# hacemos regresiones más chetas podemos retocarla:
-# =============================================================================
-class regresion_lineal:
-
-    def __init__(self) -> None:
-        self.parametros = None
-        self.cov_parametros = None
-        self.r = None
-        self.x = None
-        self.y = None
-        pass
-
-    def fit(self, x, y, cov_y = None, ordenada = False):
-        '''
-        INPUT: (x, y) son los datos para ajustar; 'cov_y' es la matriz de covarianza de los datos, de no haber errores, por defecto es la identidad;
-        'ordenada' es por si se quiere o no tener como output la ordenada.
-        OUTPUT: actualiza los coeficientes del ajuste y su matriz de covarianza.
-        '''
-        self.x, self.y = x, y
-        if cov_y is None:
-            cov_y = np.diag(np.ones(y.shape))
-        #Esta hecha con matrices por si después queremos ampliarla
-        A = [x]
-        if ordenada == True:
-            A = [np.ones(x.shape)] + A
-        A = np.matrix(A).T # Matriz de vandermonte
-        inversa_cov = np.linalg.inv(cov_y)
-        parametros = np.dot(np.dot(np.dot(np.linalg.inv(np.dot(np.dot(A.T,inversa_cov),A)), A.T), inversa_cov),y)
-        cov_parametros = np.linalg.inv(np.dot(A.T, np.dot(inversa_cov, A)))
-        self.parametros, self.cov_parametros = np.array(parametros)[0], np.array(cov_parametros)
-    
-    def bondad(self):
-        self.r = np.corrcoef(self.x, self.y)
+path = "C:/repos/labo_4/"
+os.chdir(path)
+from  funciones import *
 
 # =============================================================================
 # Señales adquiridas con el osci el primer día de medición. 
@@ -221,10 +187,10 @@ picos_t, amplitud_t = np.array(picos_t), np.array(amplitud_t)
 # =============================================================================
 
 # Creo el objeto para hacer ajustes y fiteo:
-reg = regresion_lineal()
 error = 0.00625*1.5 # 1.6V/256 + %50
-cov_error = np.diag((np.full(amplitud_t.shape, error))**2)
-reg.fit(picos_t, np.log(amplitud_t), cov_y = cov_error, ordenada = True)
+cov_error = np.identity(len(amplitud_t))*error**2
+reg = regresion_lineal(picos_t, np.log(amplitud_t), cov_y = cov_error, n = 1, ordenada = True)
+reg.fit()
 
 # La matriz cov es la matriz de covarianza de los coeficientes del ajuste:
 ordenada, pendiente, cov = reg.parametros[0], reg.parametros[1], reg.cov_parametros
@@ -264,77 +230,31 @@ print(f'El coeficiente de correlación lineal de los datos es: {reg.r[1][0]}')
 # CALCULO DE MODULO DE YOUNG Y FRECUENCIA DEL SEGUNDO MODO. ADEMÁS, SUS 
 # RESPECTIVOS ERRORES.
 # =============================================================================
-
-I = ((np.pi*(5/1000)**4)/64) # momento de inercia seccional
-masa = 88.85/1000
-longitud = .38
-longitud_entera = .5
-# longitud = .316 # osci día1
-densidad_lineal = masa/longitud#longitud_entera
-k_1 = 4.934484391
-# k_1 = 5.93387364 # osci día1
-f_1 = picos[0]
-
+# =============================================================================
+# Propagación de errores del módulo de Young
+# =============================================================================
 # EN PASCALES = [kg/m*s^2]
-modulo = ((f_1**2)*4*np.pi**2+pendiente**2)/((I/densidad_lineal)*k_1**4) 
+
+f_1, k_1, k_2, a, d, m, l,  = picos[0].copy(), 4.934484391, 12.3528714, pendiente.copy()[0], 5/1000, 88.85/1000, .38
+longitud_entera = .5
+dic_young = {'variables': [('f_1', f_1, 0), ('k_1',k_1,0), ('a',pendiente,float(np.sqrt(v22))), ('d',d,.05/1000), ('m',m,.01/1000), ('l',l,1/1000)],
+    'expr': ('E', '((f_1**2)*4*np.pi**2+a**2)/((((np.pi*(d)**4)/64)/(m/l))*k_1**4)')}
+propaga = propagacion_errores(dic_young)
+propaga.fit()
 # EN GIGAPASCALES
-modulo_gpa = modulo/1e9
+E, errorE = propaga.valor, propaga.error
+print(E/1e9, errorE/1e9)
 
-k_2 = 12.3528714
-# k_2 = 14.85471878 # osci día1
-# EN HZ
-segundo_modo = (1/(2*np.pi))*np.sqrt((I*modulo*(k_2)**4)/densidad_lineal-pendiente**2)
+# =============================================================================
+# Propagación de errores del segundo modo
+# =============================================================================
+f_1, k_1, k_2, a, d, m, l  = picos[0].copy(), 4.934484391, 12.3528714, pendiente.copy()[0], 5/1000, 88.85/1000, .38
+E, errorE = propaga.valor[0], propaga.error[0]
 
-# PROPAGACIÓN DE ERRORES:
+dic_modo_2 = {'variables': [('E', E, errorE), ('k_2', k_2, 0), ('a', a, 0.000960), ('d', d, 1/1000), ('m', m, .01/1000), ('l', l, 1/1000)],
+ 'expr': ('m_2', '(1/(2*np.pi))*((((np.pi*(d)**4)/64)*E*(k_2)**4)/(m/l)-a**2)**(1/2)')}
 
-from sympy import symbols, solve, nsolve, cos, cosh, sin, sinh, exp, lambdify, latex, diff, sqrt
-
-def suma_cuadrada(lista):
-    suma = 0
-    for el in lista:
-        suma += el**2
-    return suma
-
-E, f, a, r, i, k, d, m, l = symbols("E f a r i k d m l", real = True)
-
-# Escribo la fórmula del módulo de Young en término de todas las variables medidas:
-numerador = ((2*np.pi*f)**2 + a**2)*(m/l)
-denominador = (np.pi*(d**4))*((4.934484391/l)**4)
-E = numerador/denominador
-
-der_a, da = diff(E, a), 0.00009
-der_m, dm = diff(E, m), 1/1000
-der_l, dl = diff(E, l), .01/1000 
-der_d, dd = diff(E, d), 1/1000
-
-
-auxiliar_E = suma_cuadrada([der_a*da, der_m*dm, der_l*dl, der_d*dd])
-
-lam_E = lambdify([a, m, l, d, f], auxiliar_E, modules = ['numpy'])
-
-dE = np.sqrt(lam_E(-.052710, 88.85/1000, .38, 5/1000, f_1))
-dE_gpa = dE/1e9
-print('El valor medido para el módulo de Young del latón es de: ({} ± {}) GPa'.format(
-    np.round(modulo_gpa, 5),
-    np.round(dE_gpa, 5)))
-
-# Escribo la fórmula de la frecuencia del segundo modo en término de todas las variables medidas:
-
-freq, d, E, m, l, a    = symbols("freq d E m l a", real = True)
-freq = ((E*l*((np.pi*(d)**4)/64))/m - a**2)*1/(2*np.pi)
-
-der_a, da = diff(freq, a), 0.00009
-der_m, dm = diff(freq, m), 1/1000
-der_l, dl = diff(freq, l), .01/1000 
-der_d, dd = diff(freq, d), 1/1000
-der_E, dE = diff(freq, E), np.sqrt(lam_E(-.052710, 88.85/1000, .38, 5/1000, f_1))
-
-auxiliar_freq = suma_cuadrada([der_a*da, der_m*dm, der_l*dl, der_d*dd, der_E*dE])
-
-lam_f = lambdify([a, m, l, d, E], auxiliar_freq, modules = ['numpy'])
-
-dfreq = np.sqrt(lam_f(-.052710, 88.85/1000, .38, 5/1000, modulo))
-
-print('El valor esperado para el segundo modo es de: ({} ± {}) GPa'.format(
-    np.round(segundo_modo, 5),
-    np.round(dfreq, 5)))
+propaga2 = propagacion_errores(dic_modo_2)
+propaga2.fit()
+modo2, errormodo2 = propaga2.valor, propaga2.error
+print(modo2, errormodo2)
