@@ -1,7 +1,7 @@
 import numpy as np, matplotlib.pyplot as plt, pandas as pd, os
 os.chdir('C:/repos/labo_4/')
-
 from funciones import *
+import ast
 
 def transforma(delta_z, ddelta_z, longitud_de_onda, dlongitud_de_onda,  cuchilla_pared, dcuchilla_pared):
     '''
@@ -16,19 +16,6 @@ def transforma(delta_z, ddelta_z, longitud_de_onda, dlongitud_de_onda,  cuchilla
     auxiliar.fit()
     return auxiliar.valor, auxiliar.error
 
-#DISTANCIAS:
-#    CUCHILA-PTOFIJO: 28.8+-.5
-#    PANTALLA-CUCHILLA: 153.6 +-.6
-#    PANTALLA-CELULAR: 21.5 +- .2
-#    CUCHILLA-BASE: .5+-.2
-#    LARGO VARILLLA: 52+-.2
-#MASAS:
-#    CUCHILLA SUELTA (UN POCO MAS LARGA Q LA QUE ESTABA PEGADA ): 3.777 gramos, 6CM +- .1 de largo 
-#    LARGO CUCHILLA DE LA VARILLA: 4+-.1 cm
-#    CUCHILLA VARILLA LATON: 10 +-.1 cm
-#    PESO VARILLA (INCLUYENDO CUCHILLA): 117.9236
-# En gramos, el error es 0.0002 g
-#LONGITUD DE ONDA DEL LASER: 670nm
 masas_2 = {'base':14.6624,1:2.1160,2:2.0399,3:1.6966,4:10.046,5:2.1535,6:5.0952,7:20.0350,10:4.7474,11:9.9163,12:2.1593,15:2.1468}
 
 # Imagenes sacadas con grana angular:
@@ -48,11 +35,35 @@ imagenes_2_grana = {
 '172238962': masas_2['base']+masas_2[3]+masas_2[5]+masas_2[15]+masas_2[7]+masas_2[6]+masas_2[1]+masas_2[2],
 '172421706': masas_2['base']+masas_2[3]+masas_2[5]+masas_2[15]+masas_2[7]+masas_2[6]+masas_2[1]+masas_2[2]+masas_2[12],
 }
-
-mediciones = pd.read_csv('C:/repos/labo_4/YOUNG_ESTATICO/mediciones_grana_angular.csv')
+mediciones = pd.read_csv('C:/repos/labo_4/YOUNG_ESTATICO/mediciones_grana_angular.csv', converters={"Mediciones(valor, error)[cm]": ast.literal_eval})
+# mediciones = pd.read_csv('C:/repos/labo_4/YOUNG_ESTATICO/mediciones_grana_angular_2.csv', converters={"Mediciones(valor, error)[cm]": ast.literal_eval})
 mediciones['Masa[g]'] = list(imagenes_2_grana.values())
 mediciones['Error Masa[g]'] = np.full(len(imagenes_2_grana.values()), 0.0002)
-mediciones['Mediciones(valor, error)[cm]'] = mediciones['Mediciones(valor, error)[cm]'].apply(lambda x: tuple(float(y) for y in x.split(', ')))
+
+# Cambio este valor porque es un string y no me permite ordenar strings:
+mediciones.iloc[0,2] = -1
+
+# Ordeno de menor a mayor acorde a la columna de las masas:
+mediciones.sort_values('Masa[g]', inplace=True)
+
+# Reasigno el nombre al valor cambiado para ordenar:
+mediciones.iloc[0,2] = 'fondo'
+
+mediciones
+#DISTANCIAS:
+#    CUCHILA-PTOFIJO: 28.8+-.5
+#    PANTALLA-CUCHILLA: 153.6 +-.6
+#    PANTALLA-CELULAR: 21.5 +- .2
+#    CUCHILLA-BASE: .5+-.2
+#    LARGO VARILLLA: 52+-.2
+#MASAS:
+#    CUCHILLA SUELTA (UN POCO MAS LARGA Q LA QUE ESTABA PEGADA ): 3.777 gramos, 6CM +- .1 de largo 
+#    LARGO CUCHILLA DE LA VARILLA: 4+-.1 cm
+#    CUCHILLA VARILLA LATON: 10 +-.1 cm
+#    PESO VARILLA (INCLUYENDO CUCHILLA): 117.9236
+# En gramos, el error es 0.0002 g
+#LONGITUD DE ONDA DEL LASER: 670nm
+
 
 # Magnitudes relevantes:
 L, dL = (28.8+1)/100, np.sqrt(.005**2 + .002**2) # error np.sqrt(.005**2 + .002**2) = 0.005385164807134505 # en metros 
@@ -70,6 +81,7 @@ longitud_de_onda = l_onda, dlongitud_de_onda= dl_onda, cuchilla_pared = 153.6/10
 
 # Armo una lista con todas las mediciones para después tomar el promedio:
 modulos_y, dmodulos_y = [], []
+aperturas, daperturas = [], []
 for ind in mediciones.index:
     if mediciones.loc[ind]['Masa[g]'] != 'fondo' and mediciones.loc[ind]['Masa[g]'] != 0:
         # Transformo las mediciones a kg y metros para suplantar en la fórmula:
@@ -77,8 +89,10 @@ for ind in mediciones.index:
         ddeltaz = mediciones.loc[ind]['Mediciones(valor, error)[cm]'][1]/100
         d_m, dd_m = transforma(deltaz, ddeltaz, l_onda, dl_onda, cuchilla_pared = 153.6/100, dcuchilla_pared=.6/100 )
         d, dd = d_m - apertura_en_reposo, np.sqrt(dd_m**2 + dapertura_en_reposo**2)
+        aperturas.append(d)
+        daperturas.append(dd)
         masa, dmasa = mediciones.loc[ind]['Masa[g]']/1000, mediciones.loc[ind]['Error Masa[g]']/1000
-        aux = propagacion_errores({'variables': [('masa', masa, dmasa), ('g', g, dg), ('L', L, dL), ('agarre', agarre, dagarre/100), ('I', I, dI/100), ('d', d, dd)],
+        aux = propagacion_errores({'variables': [('masa', masa, dmasa), ('g', g, dg), ('L', L, dL), ('agarre', agarre, dagarre/100), ('I', I, dI), ('d', d, dd)],
         'expr':('E', '(masa * g * (L*agarre**2 - (agarre**3)/3))/(2*I*d)')})
         aux.fit()
         modulos_y.append(aux.valor)
@@ -90,4 +104,26 @@ dE = 0
 for i in dmodulos_y:
     dE += (i/(len(dmodulos_y)))**2
 dE = np.sqrt(dE)/1e9
-E, dE
+
+# Los módulos de Young de las mediciones son:
+masas_zip = [value for value in imagenes_2_grana.values() if (value != 'fondo'and value!= 0)]
+# Las ordeno de mayor a menor:
+masas_zip.sort()
+texto = f'Masa: ({0} ± {.0002})g:'
+texto += f'--> Apertura inicial: ({apertura_en_reposo} ± {dapertura_en_reposo}) m.'
+print(texto)
+for masa, apertura, dapertura, modulo, dmodulo in zip(masas_zip, aperturas, daperturas, modulos_y, dmodulos_y):
+    texto = f'Masa: ({masa} ± {.0002})g:'
+    texto += f'--> Apertura respecto a la inicial: ({apertura} ± {dapertura}) m.'
+    texto += f'--> Módulo: ({modulo/1e9} ± {dmodulo/1e9}) GPa.\n'
+    print(texto)
+print(f'El promedio de los resultados nos indica que el modulo de Young del acero inoxidable 304 es ({E} ± {dE}) GPa.')
+
+
+# for apertura, dapertura in zip(aperturas,daperturas):
+#     print(f'${"{:.4e}".format(np.round(apertura*1000,7))}'.replace('.',','),'\pm', f'{np.format_float_scientific(dapertura*1000,0)}$'.replace('.',',')) 
+# for masa in masas_zip:
+#     print(f'${np.round(masa,4)}'.replace('.', ','),'\pm', '0,0002$') 
+# for modulo, dmodulo in zip(modulos_y, dmodulos_y):
+#     print(f'${int(np.round(modulo/1e9,0))}'.replace('.', ','),'\pm', f'{int(np.round(dmodulo/1e9,0))}$'.replace('.',',')) 
+

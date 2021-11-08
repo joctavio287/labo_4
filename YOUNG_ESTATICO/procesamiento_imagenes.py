@@ -713,4 +713,4 @@ mediciones_2_grana.values()
 # ===========================================================================
 index = pd.Index(mediciones_2_grana.keys(), name = 'Foto')
 df = pd.DataFrame(data = {'Mediciones(valor, error)[cm]':list(mediciones_2_grana.values())}, index = index, columns = ['Mediciones(valor, error)[cm]'])
-df.to_csv('C:/repos/labo_4/YOUNG_ESTATICO/mediciones_grana_angular.csv')
+df.to_csv('C:/repos/labo_4/YOUNG_ESTATICO/mediciones_grana_angular_3.csv')
