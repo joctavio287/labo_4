@@ -72,7 +72,7 @@ intervalo_temporal += t_auxiliar_2 - t_auxiliar_1
 # Asumimos que el fenómeno dura 3.5'= 210'', modificar de ser necesario
 tiempo_total = 210 
 
-# Creo las iteraciones
+# Creo las iteraciones (tiempo_total/intervalo_temporal es el número de pasos que vamos a tomar)
 iteraciones = np.arange(0, tiempo_total/intervalo_temporal, 1)
 
 # Tomamos la referencia del tiempo inicial
