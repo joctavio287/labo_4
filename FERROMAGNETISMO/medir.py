@@ -66,8 +66,9 @@ marca_tension_2 = t + (time.time() - t)/2
 t - marca_tension_2
 t_auxiliar_2 = time.time()
 
-# Actualizo el valor del intervalo temporal
-intervalo_temporal += t_auxiliar_2 - t_auxiliar_1
+# Actualizo el valor del intervalo temporal (resto de manera tal que el tiempo del inervalo 
+# resultante sea el especificado más arriba):
+intervalo_temporal -= t_auxiliar_2 - t_auxiliar_1
 
 # Asumimos que el fenómeno dura 3.5'= 210'', modificar de ser necesario
 tiempo_total = 210 
