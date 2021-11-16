@@ -1,11 +1,6 @@
-import scipy.stats as sp, numpy as np, matplotlib.pyplot as plt, pandas as pd, os
-# Es el path al directorio contenedor de ffts.py
-path = "C:/repos/labo_4/YOUNG_DINAMICO/"
-os.chdir(path)
-from ffts import *
-path = "C:/repos/labo_4/"
-os.chdir(path)
-from  funciones import *
+import numpy as np, matplotlib.pyplot as plt, pandas as pd
+from YOUNG_DINAMICO.ffts import tirafft, peaks
+from funciones import *
 
 # =============================================================================
 # Señales adquiridas con el osci el primer día de medición. 
@@ -89,8 +84,6 @@ threshold = None,
  distance = None,
  width = None,
  rel_height = None)
-
-
 
 ################################### REPITO EL PROCESO CON MEDICIONES OSCI DIA 2 #########################
 
@@ -191,7 +184,7 @@ error = 0.00625*1.5 # 1.6V/256 + %50
 cov_error = np.identity(len(amplitud_t))*error**2
 reg = regresion_lineal(picos_t, np.log(amplitud_t), cov_y = cov_error, n = 1, ordenada = True)
 reg.fit()
-
+regresion_lineal()
 # La matriz cov es la matriz de covarianza de los coeficientes del ajuste:
 ordenada, pendiente, cov = reg.parametros[0], reg.parametros[1], reg.cov_parametros
 v11, v12, v21, v22 = cov[0][0], cov[1][0], cov[0][1], cov[1][1] 

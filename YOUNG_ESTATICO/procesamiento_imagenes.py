@@ -218,11 +218,17 @@ imagen = plt.imread('C:/repos/labo_4/YOUNG_ESTATICO/Mediciones_2_grana-alteradas
 # Veo los tres colores (RGB) y decido cuál es el que mejor se vé para analizar: 
 fig, axs = plt.subplots(nrows = 1, ncols = 3)
 for i in range(3):
-    axs[i].imshow(imagen[:, :, i])#, cmap = colormap[i])
+    axs[i].imshow(imagen[0:700, 500:900, i], cmap = colormap[i])
     axs[i].set_axis_off()
-fig.tight_layout()
+fig.subplots_adjust( 
+    left  = 0.01,  # the left side of the subplots of the figure
+    right = 0.99,    # the right side of the subplots of the figure, as a fraction of the figure width
+    bottom = 0.01,   # the bottom of the subplots of the figure
+    top = 0.99,      # the top of the subplots of the figure
+    wspace = 0.00015,   # the amount of width reserved for blank space between subplots
+    hspace = 0.075) 
 fig.show()
-
+fig.savefig('C:/repos/labo_4/YOUNG_ESTATICO/Imagenes_informe/tricolor.png', dpi = 1200)
 # Lo elijo y selecciono el rango para hacer el bineo:
 imagen = imagen[:, :, 1].copy()
 fig = plt.figure()

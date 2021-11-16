@@ -7,6 +7,13 @@ from sklearn.preprocessing import PolynomialFeatures
 # datos del laboratorio
 #===========================================================================
 
+# Funcion de prueba:
+def suma(a:int, b:int):
+    '''
+    suma de dos numeros
+    '''
+    return a + b
+
 # Clase para hacer regresiones lineales:
 
 class regresion_lineal:
@@ -154,13 +161,14 @@ class propagacion_errores:
         lambd_err = lambdify(simbolos, propagacion_errores.norma(terminos), modules = ['numpy'])
         lambd_val = lambdify(simbolos, locals()[self.parametros['expr'][0]], modules = ['numpy'])
         self.valor, self.error = lambd_val(*valores), lambd_err(*valores)
+        return self.valor, self.error
 
-
-
-dic = {
+if __name__== '__main__':
+    dic = {
     'variables': [('f', 14.78, 0), ('a',-.052710,.00009), ('d',5/1000,0.05/1000), ('m',88.85/1000,.01/1000), ('l',.36,1/1000)],
     'expr': ('E', '((f**2)*4*np.pi**2+a**2)/((((np.pi*(d)**4)/64)/(m/l)*4.934484391**4))')
-}
-propaga = propagacion_errores(dic)
-propaga.fit()
-propaga.valor/1e9, propaga.error/1e9
+    }
+        
+    propaga = propagacion_errores(dic)
+    propaga.fit()
+    propaga.valor/1e9, propaga.error/1e9
