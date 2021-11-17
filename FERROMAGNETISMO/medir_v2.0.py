@@ -11,6 +11,18 @@ instrumentos = rm.list_resources()
 osc = rm.open_resource(instrumentos[0])
 mult = rm.open_resource(instrumentos[1])
 
+# Función para sacarle una foto a la pantalla por canal
+def medir(inst = osc, channel = 1):
+    """
+    Adquiere los datos del canal channel (es un int) y los devuelve en un array de numpy
+    """
+    inst.write('DATa:SOUrce CH' + str(channel))
+    xze, xin, yze, ymu, yoff = inst.query_ascii_values('WFMPRE:XZE?;XIN?;YZE?;YMU?;YOFF?;', separator = ';')
+    datos = inst.query_binary_values('CURV?', datatype = 'B', container = np.array)
+    data = (datos - yoff)*ymu + yze
+    tiempo = xze + np.arange(len(data)) * xin
+    return tiempo, data
+
 # ========================================================================
 # Vamos a tomar mediciones indirectas de la temperatura del núcleo del 
 # transformador, recopilando la impedancia de una resistencia adosada 
@@ -81,6 +93,7 @@ t_0 = time.time()
 
 # Hacemos iteraciones
 for i in iteraciones:
+
     # Medición de resistencia
     t = time.time()
     resistencia.append(float(mult.query('MEASURE:FRES?')))
@@ -91,8 +104,7 @@ for i in iteraciones:
 
     # Medición de tensión en el primario
     t = time.time()
-    osc.write('MEASUrement:IMMed:SOU CH1; TYPe PK2k')
-    tension_1.append(osc.query_ascii_values('MEASUrement:IMMed:VALue?')[0])
+    tension_1.append(medir(osc, 1))
     # La marca temporal es el promedio entre antes y después de medir
     marca_tension_1 = t + (time.time() - t)/2
     # Appendeamos el tiempo respecto al t_0
@@ -100,8 +112,7 @@ for i in iteraciones:
 
     # Medición de tensión en el secundario
     t = time.time()
-    osc.write('MEASUrement:IMMed:SOU CH2; TYPe PK2k')
-    tension_2.append(osc.query_ascii_values('MEASUrement:IMMed:VALue?')[0])
+    tension_1.append(medir(osc, 2))
     # La marca temporal es el promedio entre antes y después de medir
     marca_tension_2 = t + (time.time() - t)/2
     # Appendeamos el tiempo respecto al t_0
@@ -110,8 +121,17 @@ for i in iteraciones:
     # Intervalo temporal entre mediciones
     time.sleep(intervalo_temporal)
 
+# Corregimos desfasajes temporales entre la tensión del primario y el secundario
+for i in iteraciones:
+    # Este es el desfasaje entre que sacamos la captura del primario al secundario
+    desfasaje = marca_temporal_tension_2[i] - marca_temporal_tension_1[i]
+
+    # Chequear que lo que viene del osc es arrays, dado el caso contrario cambiarlos
+    tension_2[i] = tension_1[i][0], np.interp(tension_1[i][0], tension_2[i][0] - desfasaje, tension_2[i][1])
+
+
 # Convertimos en formato numpy los datos
-resistencia,tension_1,tension_2 = np.array(resistencia),np.array(tension_1),np.array(tension_2)
+resistencia = np.array(resistencia)
 marca_temporal_resistencia,marca_temporal_tension_1,marca_temporal_tension_2 = np.array(marca_temporal_resistencia),np.array(marca_temporal_tension_1),np.array(marca_temporal_tension_2)
 
 # Antes de analizar lo medido, guardamos los datos
@@ -166,28 +186,29 @@ marca_temporal_temperatura = marca_temporal_resistencia.copy()
 
 # =================================================================================================
 # De alguna manera tenemos que unir las mediciones para que todas esten asociadas al mismo tiempo,
-# para ello podemos tomar alguna de las mediciones (temperatura, tension_primario o secundario) co_
-# mo y utilizar su huella temporal como referencia a partir de la cual interpolaremos el resto.
-# Tomamos la temperatura como referencia (después cambiar como sea conveniente).
+# para ello podemos tomar alguna de las mediciones (temperatura, tension_primario o secundario) y 
+# utilizar su huella temporal como referencia a partir de la cual interpolaremos el resto.
+# Tomamos la tensión del primario como referencia (después cambiar como sea conveniente).
 # =================================================================================================
 
-# Interpolación de la tension_1 y la tension_2 en base a la huella temporal de la temperatura
-tension_1_interpolada = np.interp(marca_temporal_temperatura, marca_temporal_tension_1, tension_1)
-error_temporal_tension_1 =  np.abs(marca_temporal_tension_1 - marca_temporal_temperatura)
+# Interpolación de la temporal en base a la huella temporal de la tension 1
 
-tension_2_interpolada = np.interp(marca_temporal_temperatura, marca_temporal_tension_2, tension_2)
-error_temporal_tension_2 =  np.abs(marca_temporal_tension_2 - marca_temporal_temperatura)
-
+temperatura = np.interp(marca_temporal_tension_1, marca_temporal_temperatura, temperatura)
+error_temporal_temperatura = np.abs(marca_temporal_tension_1 - marca_temporal_temperatura)
 
 # =================================================================================================
-# Antes de graficar sólo resta integrar numéricamente la tensión del secundario:
+# Antes de graficar sólo resta integrar numéricamente la tensión del secundario para cada 
+# una de las mediciones:
 # =================================================================================================
 
 # # Si la señal tiene offset
 # tension_1_interpolada = tension_1_interpolada - tension_1_interpolada.mean()
 
 # Realizo la integral:
-tension_2_interpolada_integrada = np.cumsum(tension_2_interpolada)
+# tension_2_interpolada_integrada = np.cumsum(tension_2_interpolada)
+# def funcion_integradora(y, offset = True):
+for i in iteraciones:
+    tension_2[i] = tension_2[i][0], funcion_integradora(tension_2[i][1])
 
 # =================================================================================================
 # Ahora que tenemos las tres mediciones asociadas al mismo tiempo podemos graficar los datos:
@@ -200,7 +221,6 @@ with plt.style.context('seaborn-whitegrid'):
     ax.set_xlabel(r'\propto B [UNIDADES?]')
     ax.set_ylabel(r'\propto H [V]')
     fig.show()
-
 
 
 # # Modelos de juguete
@@ -220,23 +240,23 @@ with plt.style.context('seaborn-whitegrid'):
 # Para integrar
 
 # Tiempo total
-T = 2*np.pi
+T = 10*np.pi
 
 # El factor de escala está basado en algunas simulaciones que corrí
 numero_de_puntos = int(T/0.15) # Este es un valor que da una buena integral
 
 # Datos sintéticos
-x = np.linspace(0.1, T, numero_de_puntos)
-y = np.sin(x) 
-# y = 1/x
+x = np.linspace(1, T, numero_de_puntos)
+# y = 3*np.sin(x) + 5
+y = 1/x
 
 # Si los datos tienen media
 # y -= y.mean()
 
 # Calculo integral numérica
-integral_y = np.cumsum(y) * (T/len(x)) #- (y[-1] - y[0])
-integral_real_y = -np.cos(x) 
-# integral_real_y = np.log(x)
+integral_y = np.cumsum(y) * (T/len(x))  #- (y[-1] - y[0])
+# integral_real_y = -3*np.cos(x) 
+integral_real_y = np.log(x)
 
 # Grafico
 plt.figure()
@@ -245,36 +265,3 @@ plt.plot(x, integral_real_y, color = 'violet', label = 'Integral real')
 plt.plot(x, y, color = 'red', label = 'Funcion real')
 plt.legend()
 plt.show(block = False)
-
-
-x = np.linspace(0, T, numero_de_puntos)
-y = np.sin(x) 
-integral_y = np.cumsum(y) * (T/len(x)) #- (y[-1] - y[0])
-integral_real_y = np.cos(x) 
-
-def pos_neg_integral(scores):
-    """Works only for 1D arrays at the moment, but can be easily extended."""
-    scores = np.hstack([[0], scores])  # Padding.
-    pos_scores, neg_scores = scores.copy(), scores.copy()
-    idxs = scores >= 0
-    pos_scores[~idxs], neg_scores[idxs] = 0, 0
-    return np.cumsum(pos_scores), np.cumsum(neg_scores)
-plt.figure()
-plt.plot(x, pos_neg_integral(y)[0])
-plt.plot(x, pos_neg_integral(y)[1])
-plt.show(block=False)
-
-
-
-
-    def _medir(channel):
-        """
-        Adquiere los datos del canal channel (es un int) y los devuelve en un array de numpy
-        La siguiente linea puede no funcionar, de ser así comentarla y toma por defecto el 
-        channel 1
-        """
-        inst.write('DATa:SOUrce CH' + str(channel)) #
-        datos = inst.query_binary_values('CURV?', datatype = 'B', container = np.array)
-        data = (datos - yoff)*ymu + yze
-        tiempo = xze + np.arange(len(data)) * xin
-        return tiempo, data
