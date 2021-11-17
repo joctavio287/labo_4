@@ -196,7 +196,7 @@ tension_2_interpolada_integrada = np.cumsum(tension_2_interpolada)
 with plt.style.context('seaborn-whitegrid'):
     fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (8,7))
     # Graficamos la tensión integrada del secundario (proporcional a B) en función de la tensión del primario (proporcional a H)
-    ax.plot(, tension_2_interpolada, label = 'Curva de histeresis')
+    ax.plot(tension_2_interpolada_integrada, tension_2_interpolada, label = 'Curva de histeresis')
     ax.set_xlabel(r'\propto B [UNIDADES?]')
     ax.set_ylabel(r'\propto H [V]')
     fig.show()
@@ -219,21 +219,23 @@ with plt.style.context('seaborn-whitegrid'):
 # Para integrar
 
 # Tiempo total
-T = 10*np.pi
+T = 2*np.pi
 
 # El factor de escala está basado en algunas simulaciones que corrí
 numero_de_puntos = int(T/0.15) # Este es un valor que da una buena integral
 
 # Datos sintéticos
-x = np.linspace(0, T, numero_de_puntos)
-y = 3*np.sin(x) 
+x = np.linspace(0.1, T, numero_de_puntos)
+y = np.sin(x) 
+# y = 1/x
 
 # Si los datos tienen media
-y -= y.mean()
+# y -= y.mean()
 
 # Calculo integral numérica
-integral_y = np.cumsum(y) * (T/len(x))
-integral_real_y = -3*np.cos(x) 
+integral_y = np.cumsum(y) * (T/len(x)) #- (y[-1] - y[0])
+integral_real_y = -np.cos(x) 
+# integral_real_y = np.log(x)
 
 # Grafico
 plt.figure()
@@ -242,3 +244,9 @@ plt.plot(x, integral_real_y, color = 'violet', label = 'Integral real')
 plt.plot(x, y, color = 'red', label = 'Funcion real')
 plt.legend()
 plt.show(block = False)
+
+
+x = np.linspace(0, T, numero_de_puntos)
+y = np.sin(x) 
+integral_y = np.cumsum(y) * (T/len(x)) #- (y[-1] - y[0])
+integral_real_y = np.cos(x) 
