@@ -1,6 +1,61 @@
 import time, pyvisa, numpy as np, matplotlib.pyplot as plt, pandas as pd
 
 # ========================================================================
+#                         Funciones auxiliares
+# ========================================================================
+
+# Función para sacarle una foto a la pantalla del osciloscopio por canal
+def medir(inst = osc, channel = 1):
+    """
+    Adquiere los datos del canal canal especificado.
+    WFMPRE:XZEro? query the time of first data point in waveform
+          :XINcr? query the horizontal sampling interval
+          :YZEro? query the waveform conversion factor
+          :YMUlt? query the vertical scale factor
+          :YOFf?  query the vertical position
+    INPUT: 
+    -inst --> objeto de pyvisa: el nombre de la instancia.
+    -channel --> int: canal del osciloscopio que se quiere medir.
+    OUTPUT:
+    Tupla de dos arrays de numpy: el tiempo y la tensión.
+    """
+    inst.write('DATa:SOUrce CH' + str(channel))
+    xze, xin, yze, ymu, yoff = inst.query_ascii_values('WFMPRE:XZE?;XIN?;YZE?;YMU?;YOFF?', separator = ';')
+    datos = inst.query_binary_values('CURV?', datatype = 'B', container = np.array)
+    data = (datos - yoff)*ymu + yze
+    tiempo = xze + np.arange(len(data)) * xin
+    return tiempo, data
+
+# Función para integrar señales
+def funcion_integradora(x, y, offset = True):
+    '''
+    Realiza la integral numerica de un set de datos (x, y)
+    INPUT: 
+    -x--> np.array: el tiempo de la señal (de no tener inventarlo convenientemente)
+    -y--> np.array: la señal.
+    -offset--> Bool: si la señal está corrida del cero, el offset genera errores. 
+    '''
+    if offset:
+        y -= y.mean()
+    T = x.max() - x.min()
+    return np.cumsum(y) * (T/len(x))  # HAY UN OFFSET SOLUCIONAR
+
+# Hacemos la conversión de resistencia [Ohms] a Temperatura [C]
+def funcion_conversora_temp(t):
+    '''
+    Conversor para Pt100 platinum resistor (http://www.madur.com/pdf/tools/en/Pt100_en.pdf)
+    INPUT:
+    t --> np.array: temperatura[Grados Celsius]. 
+    OUTPUT:
+    r --> np.array: resistencia[Ohms].
+     '''
+    R_0 = 100 # Ohms; resistencia a 0 grados Celsius
+    A = 3.9083e-3 # grados a la menos 1
+    B = -5.775e-7 # grados a la menos 2
+    C = -4.183e-12 # grados a la menos 4
+    return np.piecewise(t, [t < 0, t >= 0], [lambda t: R_0*(1+A*t+B*t**2+C*(t-100)*t**3), lambda t: R_0*(1+A*t+B*t**2)])
+
+# ========================================================================
 # Chequeamos los instrumentos que están conectados
 # ========================================================================
 
@@ -10,19 +65,6 @@ instrumentos = rm.list_resources()
 # Hay que chequear el numero de la lista para asignarlo correctamente:
 osc = rm.open_resource(instrumentos[0])
 mult = rm.open_resource(instrumentos[1])
-
-# Función para sacarle una foto a la pantalla por canal
-def medir(inst = osc, channel = 1):
-    """
-    Adquiere los datos del canal channel (es un int) y los devuelve en un array de numpy
-    """
-    inst.write('DATa:SOUrce CH' + str(channel))
-    xze, xin, yze, ymu, yoff = inst.query_ascii_values('WFMPRE:XZE?;XIN?;YZE?;YMU?;YOFF?;', separator = ';')
-    datos = inst.query_binary_values('CURV?', datatype = 'B', container = np.array)
-    data = (datos - yoff)*ymu + yze
-    tiempo = xze + np.arange(len(data)) * xin
-    return tiempo, data
-
 # ========================================================================
 # Vamos a tomar mediciones indirectas de la temperatura del núcleo del 
 # transformador, recopilando la impedancia de una resistencia adosada 
@@ -40,7 +82,7 @@ osc.write(f'CH{2}:SCale {escala:3.1E}')
 # (220 V) es de 50 Hz.
 # ========================================================================
 freq = 50 # Hz
-escala_t = (4/10)*(1/freq) # para que entren cuatro períodos en la pantalla
+escala_t = 4/(10*2*np.pi*freq) # para que entren cuatro períodos en la pantalla (tiene diez cuadraditos, x eso el 10)
 osc.write(f'HORizontal:MAin:SCale {escala_t:3.1E}')
 
 # ========================================================================
@@ -58,18 +100,17 @@ t_auxiliar_1 = time.time()
 # ESTA ES UNA ITERACION PELADA
 t = time.time()
 float(mult.query('MEASURE:FRES?'))
-t + (time.time() - t)/2
-t- t + (time.time() - t)/2
+marca_resistencia = t + (time.time() - t)/2
+marca_resistencia-t
 t = time.time()
-osc.write('MEASUrement:IMMed:SOU CH1; TYPe PK2k')
-osc.query_ascii_values('MEASUrement:IMMed:VALue?')[0]
+medir(osc, 1)
 marca_tension_1 = t + (time.time() - t)/2
-marca_tension_1
+marca_tension_1 - t
 t = time.time()
-osc.write('MEASUrement:IMMed:SOU CH2; TYPe PK2k')
-osc.query_ascii_values('MEASUrement:IMMed:VALue?')[0]
+medir(osc, 2)
 marca_tension_2 = t + (time.time() - t)/2
-t - marca_tension_2
+marca_tension_2 - t
+
 t_auxiliar_2 = time.time()
 
 # Actualizamos el valor del intervalo temporal (resto de manera tal que el tiempo del inervalo 
@@ -125,7 +166,7 @@ for i in iteraciones:
 for i in iteraciones:
     # Este es el desfasaje entre que sacamos la captura del primario al secundario
     desfasaje = marca_temporal_tension_2[i] - marca_temporal_tension_1[i]
-
+    # ATENCION ESTA INTERPOLACION ES INCORRECTA MOSTRARLE EL DIBU A SOFI
     # Chequear que lo que viene del osc es arrays, dado el caso contrario cambiarlos
     tension_2[i] = tension_1[i][0], np.interp(tension_1[i][0], tension_2[i][0] - desfasaje, tension_2[i][1])
 
@@ -135,9 +176,9 @@ resistencia = np.array(resistencia)
 marca_temporal_resistencia,marca_temporal_tension_1,marca_temporal_tension_2 = np.array(marca_temporal_resistencia),np.array(marca_temporal_tension_1),np.array(marca_temporal_tension_2)
 
 # Antes de analizar lo medido, guardamos los datos
-datos = pd.Dataframe(data = {'resistencia[Ohms]' : resistencia, 'marca_temporal_resistencia' : marca_temporal_resistencia,
-                             'tension_1[V]': tension_1, 'marca_temporal_tension_1' : marca_temporal_tension_1,
-                             'tension_2[V]': tension_2, 'marca_temporal_tension_2' : marca_temporal_tension_2})
+datos = pd.DataFrame(data = {'resistencia' : resistencia, 'marca_temporal_resistencia' : marca_temporal_resistencia,
+                             'tension_1': tension_1, 'marca_temporal_tension_1' : marca_temporal_tension_1,
+                             'tension_2': tension_2, 'marca_temporal_tension_2' : marca_temporal_tension_2})
 
 # Modificar acorde a dónde guardemos en la compu del labo:
 full_path = 'C:/repos/labo_4/FERROMAGNETISMO/Mediciones/'
@@ -148,37 +189,27 @@ datos.to_csv(full_path + 'medicion_{}'.format(o))
 
 #################################### ANALISIS DE DATOS ####################################
 
-# Hacemos la conversión de resistencia [Ohms] a Temperatura [C]
-def funcion_conversora(t):
-    '''
-    Conversor para Pt100 platinum resistor (http://www.madur.com/pdf/tools/en/Pt100_en.pdf)
-    INPUT:
-    t --> np.array: temperatura[Grados Celsius]. 
-    OUTPUT:
-    r --> np.array: resistencia[Ohms].
-     '''
-    R_0 = 100 # Ohms; resistencia a 0 grados Celsius
-    A = 3.9083e-3 # grados a la menos 1
-    B = -5.775e-7 # grados a la menos 2
-    C = -4.183e-12 # grados a la menos 4
-    return np.piecewise(t, [t < 0, t >= 0], [lambda t: R_0*(1+A*t+B*t**2+C*(t-100)*t**3), lambda t: R_0*(1+A*t+B*t**2)])
+# =================================================================================================
+# Necesitamos convertir los datos de la resistencia a temperatura, para ello nos valemos de la fun_
+# ción definida al comienzo del código
+# =================================================================================================
 
-# Para ver cómo es la conversion
-plt.figure()
-plt.plot(np.linspace(-200,800,1000), funcion_conversora(np.linspace(-200,800,1000)))
-plt.xlabel('Temeperatura [C]')
-plt.ylabel('Resistencia [Ohms]')
-plt.grid(True)
-plt.legend()
-plt.show(block = False)
+# # Para ver cómo es la conversion
+# plt.figure()
+# plt.plot(np.linspace(-200,800,1000), funcion_conversora_temp(np.linspace(-200,800,1000)), color = 'red', label = 'Curva de conversión')
+# plt.xlabel('Temeperatura [C]')
+# plt.ylabel('Resistencia [Ohms]')
+# plt.grid(True)
+# plt.legend()
+# plt.show(block = False)
 
-# ATENCION NO PRINTEAR NI 'temperaturas_auxiliar', ni 'conversor', son muchos numeros y rompen la maquina.
+# ATENCION NO PRINTEAR 'temperaturas_auxiliar', ni 'conversor', son muchos números y rompen la maquina
 
-# Un rango de temperaturas muy fino, se puede hacer todavía más fino si la resolución de las mediciones es muy buena.
+# Un rango de temperaturas muy fino, se puede hacer todavía más fino si la resolución de las mediciones es muy buena
 temperaturas_auxiliar = np.linspace(-300, 300, 100000) 
 
-# Creamod un diccionario para transformar resistencias en temperaturas:
-conversor = {r: t for r, t in zip(funcion_conversora(temperaturas_auxiliar), temperaturas_auxiliar)}
+# Creamod un diccionario para transformar resistencias en temperaturas
+conversor = {r: t for r, t in zip(funcion_conversora_temp(temperaturas_auxiliar), temperaturas_auxiliar)}
 
 # Transformamos las impedancias medidas [Ohms] a temperatura [K]
 temperatura = [conversor[min(conversor.keys(), key = lambda x:abs(x-r)) + 273.15] for r in resistencia]
@@ -191,7 +222,7 @@ marca_temporal_temperatura = marca_temporal_resistencia.copy()
 # Tomamos la tensión del primario como referencia (después cambiar como sea conveniente).
 # =================================================================================================
 
-# Interpolación de la temporal en base a la huella temporal de la tension 1
+# Interpolación de la temperatura en base a la huella temporal de la tension del primario
 
 temperatura = np.interp(marca_temporal_tension_1, marca_temporal_temperatura, temperatura)
 error_temporal_temperatura = np.abs(marca_temporal_tension_1 - marca_temporal_temperatura)
@@ -202,13 +233,12 @@ error_temporal_temperatura = np.abs(marca_temporal_tension_1 - marca_temporal_te
 # =================================================================================================
 
 # # Si la señal tiene offset
-# tension_1_interpolada = tension_1_interpolada - tension_1_interpolada.mean()
+# tension_1_interpolada -= tension_1_interpolada.mean()
 
 # Realizo la integral:
-# tension_2_interpolada_integrada = np.cumsum(tension_2_interpolada)
-# def funcion_integradora(y, offset = True):
-for i in iteraciones:
-    tension_2[i] = tension_2[i][0], funcion_integradora(tension_2[i][1])
+
+# for i in iteraciones:
+#     tension_2[i] = tension_2[i][0], funcion_integradora(tension_2[i][1])
 
 # =================================================================================================
 # Ahora que tenemos las tres mediciones asociadas al mismo tiempo podemos graficar los datos:
@@ -247,16 +277,16 @@ numero_de_puntos = int(T/0.15) # Este es un valor que da una buena integral
 
 # Datos sintéticos
 x = np.linspace(1, T, numero_de_puntos)
-# y = 3*np.sin(x) + 5
-y = 1/x
+y = 3*np.sin(x) + 5
+# y = 1/x
 
 # Si los datos tienen media
-# y -= y.mean()
+y -= y.mean()
 
 # Calculo integral numérica
 integral_y = np.cumsum(y) * (T/len(x))  #- (y[-1] - y[0])
-# integral_real_y = -3*np.cos(x) 
-integral_real_y = np.log(x)
+integral_real_y = -3*np.cos(x) 
+# integral_real_y = np.log(x)
 
 # Grafico
 plt.figure()
