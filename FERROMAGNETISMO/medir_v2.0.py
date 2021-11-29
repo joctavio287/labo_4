@@ -5,7 +5,7 @@ import time, pyvisa, numpy as np, matplotlib.pyplot as plt, pandas as pd
 # ========================================================================
 
 # Función para sacarle una foto a la pantalla del osciloscopio por canal
-def medir(inst = osc, channel = 1):
+def medir(inst, channel = 1):
     """
     Adquiere los datos del canal canal especificado.
     WFMPRE:XZEro? query the time of first data point in waveform
@@ -73,6 +73,7 @@ mult = rm.open_resource(instrumentos[1])
 # ========================================================================
 
 # La graduación vertical (1 cuadradito) puede ser: [50e-3, 100e-3, 200e-3, 500e-3, .1e1, .2e1, .5e1]
+# Medimos con diferente escalas los dos canales y estas cambiaron para el experimento con y sin integrador
 escala = .2e1
 osc.write(f'CH{1}:SCale {escala:3.1E}')
 osc.write(f'CH{2}:SCale {escala:3.1E}')
@@ -92,7 +93,7 @@ osc.write(f'HORizontal:MAin:SCale {escala_t:3.1E}')
 # ========================================================================
 
 # Las mediciones se van a efectuar cada 'intervalo_temporal'
-intervalo_temporal = 5
+intervalo_temporal = 4
 
 # Hay que hacer una iteración para saber cuánto tarda y podamos asignar bien el intervalo temporal
 t_auxiliar_1 = time.time()
@@ -118,7 +119,7 @@ t_auxiliar_2 = time.time()
 intervalo_temporal -= t_auxiliar_2 - t_auxiliar_1
 
 # Asumimos que el fenómeno dura 3.5'= 210'', modificar de ser necesario
-tiempo_total = 210 
+tiempo_total = 150
 
 # Creo las iteraciones (tiempo_total/intervalo_temporal es el número de pasos que vamos a tomar)
 iteraciones = np.arange(0, int(tiempo_total/intervalo_temporal), 1)
@@ -162,13 +163,13 @@ for i in iteraciones:
     # Intervalo temporal entre mediciones
     time.sleep(intervalo_temporal)
 
-# Corregimos desfasajes temporales entre la tensión del primario y el secundario
-for i in iteraciones:
-    # Este es el desfasaje entre que sacamos la captura del primario al secundario
-    desfasaje = marca_temporal_tension_2[i] - marca_temporal_tension_1[i]
-    # ATENCION ESTA INTERPOLACION ES INCORRECTA MOSTRARLE EL DIBU A SOFI
-    # Chequear que lo que viene del osc es arrays, dado el caso contrario cambiarlos
-    tension_2[i] = tension_1[i][0], np.interp(tension_1[i][0], tension_2[i][0] - desfasaje, tension_2[i][1])
+# ESTABA MAL# Corregimos desfasajes temporales entre la tensión del primario y el secundario
+# for i in iteraciones:
+#     # Este es el desfasaje entre que sacamos la captura del primario al secundario
+#     desfasaje = marca_temporal_tension_2[i] - marca_temporal_tension_1[i]
+#     # ATENCION ESTA INTERPOLACION ES INCORRECTA MOSTRARLE EL DIBU A SOFI
+#     # Chequear que lo que viene del osc es arrays, dado el caso contrario cambiarlos
+#     tension_2[i] = tension_1[i][0], np.interp(tension_1[i][0], tension_2[i][0] - desfasaje, tension_2[i][1])
 
 
 # Convertimos en formato numpy los datos
@@ -186,6 +187,7 @@ full_path = 'C:/repos/labo_4/FERROMAGNETISMO/Mediciones/'
 # Cambiar después de cada medición, sino los datos se van a reescribir
 o = 0
 datos.to_csv(full_path + 'medicion_{}'.format(o))
+datos.to_csv(full_path + 'medicion_sin_integrador_{}'.format(o))
 
 #################################### ANALISIS DE DATOS ####################################
 
@@ -193,15 +195,6 @@ datos.to_csv(full_path + 'medicion_{}'.format(o))
 # Necesitamos convertir los datos de la resistencia a temperatura, para ello nos valemos de la fun_
 # ción definida al comienzo del código
 # =================================================================================================
-
-# # Para ver cómo es la conversion
-# plt.figure()
-# plt.plot(np.linspace(-200,800,1000), funcion_conversora_temp(np.linspace(-200,800,1000)), color = 'red', label = 'Curva de conversión')
-# plt.xlabel('Temeperatura [C]')
-# plt.ylabel('Resistencia [Ohms]')
-# plt.grid(True)
-# plt.legend()
-# plt.show(block = False)
 
 # ATENCION NO PRINTEAR 'temperaturas_auxiliar', ni 'conversor', son muchos números y rompen la maquina
 
@@ -212,7 +205,7 @@ temperaturas_auxiliar = np.linspace(-300, 300, 100000)
 conversor = {r: t for r, t in zip(funcion_conversora_temp(temperaturas_auxiliar), temperaturas_auxiliar)}
 
 # Transformamos las impedancias medidas [Ohms] a temperatura [K]
-temperatura = [conversor[min(conversor.keys(), key = lambda x:abs(x-r)) + 273.15] for r in resistencia]
+temperatura = [conversor[min(conversor.keys(), key = lambda x:abs(x-r))] + 273.15 for r in resistencia]
 marca_temporal_temperatura = marca_temporal_resistencia.copy()
 
 # =================================================================================================
@@ -247,7 +240,7 @@ error_temporal_temperatura = np.abs(marca_temporal_tension_1 - marca_temporal_te
 with plt.style.context('seaborn-whitegrid'):
     fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (8,7))
     # Graficamos la tensión integrada del secundario (proporcional a B) en función de la tensión del primario (proporcional a H)
-    ax.plot(tension_2_interpolada_integrada, tension_2_interpolada, label = 'Curva de histeresis')
+    # ax.plot(tension_2_interpolada_integrada, tension_2_interpolada, label = 'Curva de histeresis')
     ax.set_xlabel(r'\propto B [UNIDADES?]')
     ax.set_ylabel(r'\propto H [V]')
     fig.show()
@@ -255,43 +248,31 @@ with plt.style.context('seaborn-whitegrid'):
 
 # # Modelos de juguete
 
-# # Para interpolar
-# x = np.linspace(0, 2, 10)
-# y = np.sin(x)
-# xvals = np.linspace(0, 2, 3)
-# yinterp = np.interp(xvals, x, y)
+# # Para integrar
+
+# # Tiempo total
+# T = 10*np.pi
+
+# # El factor de escala está basado en algunas simulaciones que corrí
+# numero_de_puntos = int(T/0.15) # Este es un valor que da una buena integral
+
+# # Datos sintéticos
+# x = np.linspace(1, T, numero_de_puntos)
+# y = 3*np.sin(x) + 5
+# # y = 1/x
+
+# # Si los datos tienen media
+# y -= y.mean()
+
+# # Calculo integral numérica
+# integral_y = np.cumsum(y) * (T/len(x))  #- (y[-1] - y[0])
+# integral_real_y = -3*np.cos(x) 
+# # integral_real_y = np.log(x)
+
+# # Grafico
 # plt.figure()
-# plt.scatter(xvals, yinterp, color = 'red', s = 5, label = 'Valores interpolados')
-# plt.scatter(x, y, color = 'black', s = 5, label = 'Valores reales')
+# plt.plot(x, integral_y, color = 'black', label = 'Integral numérica')
+# plt.plot(x, integral_real_y, color = 'violet', label = 'Integral real')
+# plt.plot(x, y, color = 'red', label = 'Funcion real')
 # plt.legend()
-# plt.show(block=False)
-
-
-# Para integrar
-
-# Tiempo total
-T = 10*np.pi
-
-# El factor de escala está basado en algunas simulaciones que corrí
-numero_de_puntos = int(T/0.15) # Este es un valor que da una buena integral
-
-# Datos sintéticos
-x = np.linspace(1, T, numero_de_puntos)
-y = 3*np.sin(x) + 5
-# y = 1/x
-
-# Si los datos tienen media
-y -= y.mean()
-
-# Calculo integral numérica
-integral_y = np.cumsum(y) * (T/len(x))  #- (y[-1] - y[0])
-integral_real_y = -3*np.cos(x) 
-# integral_real_y = np.log(x)
-
-# Grafico
-plt.figure()
-plt.plot(x, integral_y, color = 'black', label = 'Integral numérica')
-plt.plot(x, integral_real_y, color = 'violet', label = 'Integral real')
-plt.plot(x, y, color = 'red', label = 'Funcion real')
-plt.legend()
-plt.show(block = False)
+# plt.show(block = False)
