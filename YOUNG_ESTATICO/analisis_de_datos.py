@@ -201,3 +201,17 @@ reg.bondad()
 print(f'El coeficiente de correlación lineal de los datos es: {reg.r[1][0]}')
 
 
+for ind in mediciones.index:
+    if mediciones.loc[ind]['Masa[g]'] != 'fondo' and mediciones.loc[ind]['Masa[g]'] != 0:
+        # Transformo las mediciones a kg y metros para suplantar en la fórmula:
+        deltaz = mediciones.loc[ind]['Mediciones(valor, error)[cm]'][0]/100
+        ddeltaz = mediciones.loc[ind]['Mediciones(valor, error)[cm]'][1]/100
+        d_m, dd_m = transforma(deltaz, ddeltaz, l_onda, dl_onda, cuchilla_pared = 153.6/100, dcuchilla_pared=.6/100 )
+        d, dd = d_m - apertura_en_reposo, np.sqrt(dd_m**2 + dapertura_en_reposo**2)
+        masa, dmasa = mediciones.loc[ind]['Masa[g]']/1000, mediciones.loc[ind]['Error Masa[g]']/1000
+        print(masa,d,dd)
+        print(deltaz,ddeltaz)
+
+apertura_en_reposo, dapertura_en_reposo 
+mediciones.iloc[1]['Mediciones(valor, error)[cm]'][0]/100, mediciones.iloc[1]['Mediciones(valor, error)[cm]'][1]/100
+dapertura_en_reposo*1000
