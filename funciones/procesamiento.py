@@ -36,6 +36,7 @@ class regresion_lineal:
         self.r = None
         self.R2 = None
         self.chi_2 = None
+        self.reduced_chi_2 = None
     
     def __str__(self):
         texto  = f'Ajuste lineal:\n -Parámetros de ajuste: {self.parametros}.\n'
