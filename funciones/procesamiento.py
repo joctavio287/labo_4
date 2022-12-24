@@ -85,7 +85,7 @@ class regresion_lineal:
         # Un chi alto podría indicar error subestimado o que y_i != f(x_i)
         # Un chi bajo podría indicar error sobrestimado
         self.chi_2 = np.sum(((self.y - self.y_modelo)/self.sigma_y)**2, axis = 0)
-        self.reduced_chi_2 = self.chi_2/(len(regr.y)-len(regr.parametros))
+        self.reduced_chi_2 = self.chi_2/(len(self.y)-len(self.parametros))
 
 # Transformadas de Fourier:
 def fft(tiempo = None, señal = None):
