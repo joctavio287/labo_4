@@ -247,32 +247,21 @@ popt, pcov = curve_fit(ajuste, eval(f'temperatura_{i}'), remanencia, sigma = err
 # Armo la franja de error del ajuste
 t_0, a, g, c = tuple(popt)
 dt_0, da, dg, dc = tuple(np.sqrt(np.diag(pcov)))
-franja_1 = lambda t: np.sqrt(
-    (dt_0 * ((a*g*np.abs(t-t_0)**g)/(t-t_0)))**2+
-    (da * (np.abs(t-t_0)**g))**2+
-    (dg * (a*np.log(np.abs(t-t_0))*np.abs(t-t_0)**g))**2+
-    (dc * (1))**2+
-    2* (pcov[0][1]) * ((a*g*np.abs(t-t_0)**g)/(t-t_0)) * (np.abs(t-t_0)**g)+
-    2* (pcov[0][2]) * ((a*g*np.abs(t-t_0)**g)/(t-t_0)) * (a*np.log(np.abs(t-t_0))*np.abs(t-t_0)**g)+
-    2* (pcov[0][3]) * ((a*g*np.abs(t-t_0)**g)/(t-t_0)) * (1)+
-    2* (pcov[1][2]) * (np.abs(t-t_0)**g) * (a*np.log(np.abs(t-t_0))*np.abs(t-t_0)**g)+
-    2* (pcov[1][3]) * (np.abs(t-t_0)**g) * (1)+    
-    2* (pcov[0][3]) * ((a*g*np.abs(t-t_0)**g)/(t-t_0)) * (1)+
-    2* (pcov[2][3]) * (a*np.log(np.abs(t-t_0))*np.abs(t-t_0)**g) * (1)
-)
-# franja_1 = lambda t: np.sqrt(
-#     (dt_0 * (-a*g*(t-t_0)**(g-1)))**2+
-#     (da * ((t-t_0)**g))**2+
-#     (dg * (a*np.log((t-t_0))*(t-t_0)**g))**2+
-#     (dc * (1))**2+
-#     2* (pcov[0][1]) * ((-a*g*(t-t_0)**(g-1))) * (((t-t_0)**g))+
-#     2* (pcov[0][2]) * ((-a*g*(t-t_0)**(g-1))) * ((a*np.log((t-t_0))*(t-t_0)**g))+
-#     2* (pcov[0][3]) * ((-a*g*(t-t_0)**(g-1))) * (1)+
-#     2* (pcov[1][2]) * (((t-t_0)**g)) * ((a*np.log((t-t_0))*(t-t_0)**g))+
-#     2* (pcov[1][3]) * (((t-t_0)**g)) * (1)+    
-#     2* (pcov[0][3]) * ((-a*g*(t-t_0)**(g-1))) * (1)+
-#     2* (pcov[2][3]) * ((a*np.log((t-t_0))*(t-t_0)**g)) * (1)
-# )
+def franja_1(t): 
+    fr  = np.sqrt(
+    pcov[0][0] * (np.select([t_0>t, t_0<=t],[np.sign(t_0-t)*a*g*np.abs(t-t_0)**(g-1),0]))**2+
+    pcov[1][1] * (np.select([t_0>t, t_0<=t],[np.abs(t-t_0)**g,c]))**2+
+    pcov[2][2] * (np.select([t_0>t, t_0<=t],[a*np.log(np.abs(t-t_0))*np.abs(t-t_0)**g,c]))**2+
+    pcov[3][3]* (np.select([t_0>t, t_0<=t],[1,c]))**2+
+    
+    2* (pcov[0][1]) * (np.select([t_0>t, t_0<=t],[np.sign(t_0-t)*a*g*np.abs(t-t_0)**(g-1),0])) * (np.select([t_0>t, t_0<=t],[np.abs(t-t_0)**g,c]))+
+    2* (pcov[0][2]) * (np.select([t_0>t, t_0<=t],[np.sign(t_0-t)*a*g*np.abs(t-t_0)**(g-1),0])) * (np.select([t_0>t, t_0<=t],[a*np.log(np.abs(t-t_0))*np.abs(t-t_0)**g,c]))+
+    2* (pcov[0][3]) * (np.select([t_0>t, t_0<=t],[np.sign(t_0-t)*a*g*np.abs(t-t_0)**(g-1),0])) * (np.select([t_0>t, t_0<=t],[1,c]))+
+    2* (pcov[1][2]) * (np.select([t_0>t, t_0<=t],[np.abs(t-t_0)**g,c])) * (np.select([t_0>t, t_0<=t],[a*np.log(np.abs(t-t_0))*np.abs(t-t_0)**g,c]))+
+    2* (pcov[1][3]) * (np.select([t_0>t, t_0<=t],[np.abs(t-t_0)**g,c])) * (np.select([t_0>t, t_0<=t],[1,c]))+    
+    2* (pcov[2][3]) * (np.select([t_0>t, t_0<=t],[a*np.log(np.abs(t-t_0))*np.abs(t-t_0)**g,c])) * (np.select([t_0>t, t_0<=t],[1,c]))
+    )
+    return fr
 x_auxiliar = np.linspace(min(eval(f'temperatura_{i}')), max(eval(f'temperatura_{i}')), 1000)
 
 # Grafico los datos con el ajuste
